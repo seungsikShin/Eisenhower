@@ -4,30 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아이젠하워 매트릭스 - 일일 업무 관리</title>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBTj21V2oVijNfcm1DQoG_x84VDQgCTFfI",
-            authDomain: "eisenhower-matrix-6f550.firebaseapp.com",
-            databaseURL: "https://eisenhower-matrix-6f550-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "eisenhower-matrix-6f550",
-            storageBucket: "eisenhower-matrix-6f550.firebasestorage.app",
-            messagingSenderId: "366336435801",
-            appId: "1:366336435801:web:0dec8ef47db225e2ec3348"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        
-        // Firebase 설정 확인 로그
-        console.log('🔥 Firebase 초기화 완료');
-        console.log('📍 Database URL:', firebaseConfig.databaseURL);
-        console.log('🆔 Project ID:', firebaseConfig.projectId);
     <style>
         * {
             margin: 0;
@@ -983,6 +959,10 @@
                         <div class="legend-dot selected"></div>
                         <span>선택된 날짜</span>
                     </div>
+                    <div class="legend-item">
+                        <div class="legend-dot today"></div>
+                        <span>오늘</span>
+                    </div>
                 </div>
             </div>
             
@@ -1154,29 +1134,33 @@
     <div class="cute-character" onclick="showTip()">🎯</div>
     <div id="status-message" class="status-message"></div>
 
-    <script>
-        // Firebase 설정
+    <script type="module">
+        // Firebase v9+ 모듈 임포트
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+        // Firebase 설정 (제공해주신 설정 사용)
         const firebaseConfig = {
-            apiKey: "AIzaSyBTj21V2oVijNfcm1DQoG_x84VDQgCTFfI",
-            authDomain: "eisenhower-matrix-6f550.firebaseapp.com",
-            databaseURL: "https://eisenhower-matrix-6f550-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "eisenhower-matrix-6f550",
-            storageBucket: "eisenhower-matrix-6f550.firebasestorage.app",
-            messagingSenderId: "366336435801",
-            appId: "1:366336435801:web:0dec8ef47db225e2ec3348"
+            apiKey: "AIzaSyDRVj5-ve2Q-zu6PwzE-R7G1JNyG4E8YVM",
+            authDomain: "eisenhower-1589b.firebaseapp.com",
+            databaseURL: "https://eisenhower-1589b-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "eisenhower-1589b",
+            storageBucket: "eisenhower-1589b.firebasestorage.app",
+            messagingSenderId: "191550460422",
+            appId: "1:191550460422:web:376099924e466a00932987"
         };
 
-        // Firebase 연결 상태 확인
-        const connectedRef = ref(database, '.info/connected');
-        onValue(connectedRef, (snap) => {
-            if (snap.val() === true) {
-                console.log('✅ Firebase 연결됨');
-                showMessage('Firebase 연결됨', 'success');
-            } else {
-                console.log('❌ Firebase 연결 끊김');
-                showMessage('Firebase 연결 끊김 - 로컬 저장소 사용', 'error');
-            }
-        });
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const dbRef = ref(database);
+
+        // 전역 변수로 설정하여 다른 함수에서 사용 가능하도록 함
+        window.firebaseDB = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebaseChild = child;
 
         // 데이터 구조
         let tasks = {
@@ -1186,13 +1170,8 @@
             4: []
         };
 
-        // 현재 사용자 ID (고정된 ID 사용)
-        let userId = localStorage.getItem('eisenhower-user-id');
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('eisenhower-user-id', userId);
-        }
-        console.log('사용자 ID:', userId);
+        // 현재 사용자 ID
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
 
         // 캘린더 관련 변수
         let currentCalendarDate = new Date();
@@ -1205,11 +1184,12 @@
         // 오늘 날짜로 초기 설정
         document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
 
-        function handleTaskInput(event, quadrant) {
+        // 전역 함수들을 window 객체에 등록
+        window.handleTaskInput = function(event, quadrant) {
             if (event.key === 'Enter') {
                 addTask(quadrant);
             }
-        }
+        };
 
         // 검색 입력 이벤트
         document.getElementById('search-tasks').addEventListener('keypress', function(event) {
@@ -1219,31 +1199,31 @@
         });
 
         // 캘린더 토글
-        function toggleCalendar() {
+        window.toggleCalendar = function() {
             const modal = document.getElementById('calendar-modal');
             modal.classList.toggle('show');
             if (modal.classList.contains('show')) {
                 renderCalendar();
             }
-        }
+        };
 
         // 검색 모달 토글
-        function toggleSearchModal() {
+        window.toggleSearchModal = function() {
             const modal = document.getElementById('search-modal');
             modal.classList.toggle('show');
-        }
+        };
 
         // 미니 캘린더 월 변경
-        function changeOverviewMonth(direction) {
+        window.changeOverviewMonth = function(direction) {
             currentOverviewDate.setMonth(currentOverviewDate.getMonth() + direction);
             renderMiniCalendar();
-        }
+        };
 
         // 캘린더 월 변경
-        function changeMonth(direction) {
+        window.changeMonth = function(direction) {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
             renderCalendar();
-        }
+        };
 
         // 미니 캘린더 렌더링
         function renderMiniCalendar() {
@@ -1362,7 +1342,7 @@
             }
         }
 
-        function addTask(quadrant) {
+        window.addTask = function(quadrant) {
             const input = document.querySelector(`[data-quadrant="${quadrant}"] .task-input`);
             const taskText = input.value.trim();
             
@@ -1386,9 +1366,9 @@
             loadDatesWithData();
             
             showMessage('업무가 추가되었습니다.', 'success');
-        }
+        };
 
-        function toggleTask(quadrant, taskId) {
+        window.toggleTask = function(quadrant, taskId) {
             const task = tasks[quadrant].find(t => t.id === taskId);
             if (task) {
                 task.completed = !task.completed;
@@ -1401,15 +1381,15 @@
                 updateTaskStats();
                 saveTasks();
             }
-        }
+        };
 
-        function deleteTask(quadrant, taskId) {
+        window.deleteTask = function(quadrant, taskId) {
             tasks[quadrant] = tasks[quadrant].filter(t => t.id !== taskId);
             renderTasks(quadrant);
             saveTasks();
             loadDatesWithData();
             showMessage('업무가 삭제되었습니다.', 'success');
-        }
+        };
 
         function renderTasks(quadrant) {
             const taskList = document.getElementById(`tasks-${quadrant}`);
@@ -1444,7 +1424,7 @@
             });
         }
 
-        function saveTasks() {
+        window.saveTasks = function() {
             const selectedDate = document.getElementById('task-date').value;
             if (!selectedDate) {
                 showMessage('날짜를 선택해주세요.', 'error');
@@ -1458,56 +1438,33 @@
                 userId: userId
             };
 
-            console.log('저장 시도:', {
-                userId: userId,
-                date: selectedDate,
-                taskCount: Object.values(tasks).reduce((sum, arr) => sum + arr.length, 0)
-            });
-
-            // Firebase Realtime Database에 저장 (v9+ 문법)
-            const dbPath = `eisenhower-tasks/${userId}/${selectedDate}`;
-            console.log('Firebase 경로:', dbPath);
-
-            const dbRef = ref(database, dbPath);
-            set(dbRef, dataToSave)
+            // Firebase Realtime Database에 저장
+            const taskRef = window.firebaseRef(window.firebaseDB, `eisenhower-tasks/${userId}/${selectedDate}`);
+            window.firebaseSet(taskRef, dataToSave)
                 .then(() => {
-                    console.log('✅ Firebase 저장 성공');
                     loadDatesWithData();
                     showMessage('Firebase에 저장되었습니다! 🎉', 'success');
                 })
                 .catch((error) => {
-                    console.error('❌ Firebase 저장 실패:', error);
-                    console.error('에러 코드:', error.code);
-                    console.error('에러 메시지:', error.message);
-                    
+                    console.error('Firebase 저장 실패:', error);
                     // Firebase 실패시 로컬 저장으로 대체
                     localStorage.setItem(`eisenhower-${selectedDate}`, JSON.stringify(dataToSave));
-                    showMessage(`로컬에 저장됨 (Firebase 오류: ${error.code})`, 'error');
+                    showMessage('로컬에 저장되었습니다.', 'success');
                 });
-        }
+        };
 
         function loadTasks() {
             const selectedDate = document.getElementById('task-date').value;
             
-            console.log('데이터 로드 시도:', {
-                userId: userId,
-                date: selectedDate
-            });
-
-            // Firebase에서 데이터 불러오기 (v9+ 문법)
-            const dbPath = `eisenhower-tasks/${userId}/${selectedDate}`;
-            const dbRef = ref(database, dbPath);
-            
-            get(dbRef)
+            // Firebase에서 데이터 불러오기
+            const taskRef = window.firebaseRef(window.firebaseDB, `eisenhower-tasks/${userId}/${selectedDate}`);
+            window.firebaseGet(taskRef)
                 .then((snapshot) => {
-                    console.log('Firebase 응답:', snapshot.exists());
                     if (snapshot.exists()) {
                         const data = snapshot.val();
-                        console.log('Firebase 데이터:', data);
                         tasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
                         showMessage('Firebase에서 데이터를 불러왔습니다.', 'success');
                     } else {
-                        console.log('Firebase에 데이터 없음, 로컬 확인');
                         // Firebase에 데이터가 없으면 로컬에서 시도
                         loadFromLocal(selectedDate);
                     }
@@ -1540,9 +1497,9 @@
         }
 
         function loadDatesWithData() {
-            // Firebase에서 데이터가 있는 날짜들 로드 (v9+ 문법)
-            const dbRef = ref(database, `eisenhower-tasks/${userId}`);
-            get(dbRef)
+            // Firebase에서 데이터가 있는 날짜들 로드
+            const userTasksRef = window.firebaseRef(window.firebaseDB, `eisenhower-tasks/${userId}`);
+            window.firebaseGet(userTasksRef)
                 .then((snapshot) => {
                     datesWithData.clear();
                     if (snapshot.exists()) {
@@ -1590,7 +1547,7 @@
                 });
         }
 
-        function searchTasks() {
+        window.searchTasks = function() {
             const searchTerm = document.getElementById('search-tasks').value.trim().toLowerCase();
             if (!searchTerm) {
                 showMessage('검색어를 입력해주세요.', 'error');
@@ -1601,9 +1558,9 @@
             resultsContainer.innerHTML = '<div class="loading">검색 중...</div>';
             toggleSearchModal();
 
-            // Firebase에서 검색 (v9+ 문법)
-            const dbRef = ref(database, `eisenhower-tasks/${userId}`);
-            get(dbRef)
+            // Firebase에서 검색
+            const userTasksRef = window.firebaseRef(window.firebaseDB, `eisenhower-tasks/${userId}`);
+            window.firebaseGet(userTasksRef)
                 .then((snapshot) => {
                     const results = [];
                     
@@ -1685,7 +1642,7 @@
                     }
                     displaySearchResults(results, searchTerm);
                 });
-        }
+        };
 
         function getQuadrantName(quadrant) {
             const names = {
@@ -1729,12 +1686,12 @@
             return text.replace(regex, '<mark style="background: #fef3c7; padding: 2px 4px; border-radius: 4px;">$1</mark>');
         }
 
-        function goToDate(date) {
+        window.goToDate = function(date) {
             document.getElementById('task-date').value = date;
             loadTasks();
             toggleSearchModal();
             showMessage(`${formatDate(date)}로 이동했습니다.`, 'success');
-        }
+        };
 
         function showMessage(message, type) {
             const messageEl = document.getElementById('status-message');
@@ -1864,13 +1821,53 @@
             return celebrations[Math.floor(Math.random() * celebrations.length)];
         }
 
-        function showTip() {
+        window.showTip = function() {
             const tips = [
                 "💡 제2사분면(중요하지만 긴급하지 않은 일)에 집중하세요!",
                 "🎯 제1사분면의 업무가 너무 많다면 계획을 재검토해보세요.",
                 "🤝 제3사분면의 업무는 적극적으로 위임하거나 거절하세요.",
-                "🗑
-                        <div class="legend-dot today"></div>
-                        <span>오늘</span>
-                    </div>
-                    <div class="legend-item">
+                "🗑️ 제4사분면의 업무는 과감히 제거하거나 최소화하세요.",
+                "📅 매일 아침 우선순위를 재검토하는 습관을 만드세요!",
+                "🕐 시간 블록킹을 활용해 집중 시간을 확보하세요.",
+                "🎨 드래그 앤 드롭으로 업무를 다른 사분면으로 쉽게 이동할 수 있어요!",
+                "🔍 검색 기능을 활용해 과거 업무를 빠르게 찾아보세요!"
+            ];
+            
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            showMessage(randomTip, 'success');
+        };
+
+        // 드래그 앤 드롭 이벤트 리스너 설정
+        document.querySelectorAll('.quadrant').forEach(quadrant => {
+            quadrant.addEventListener('dragover', handleDragOver);
+            quadrant.addEventListener('dragenter', handleDragEnter);
+            quadrant.addEventListener('dragleave', handleDragLeave);
+            quadrant.addEventListener('drop', handleDrop);
+        });
+
+        // 날짜 변경 이벤트 리스너
+        document.getElementById('task-date').addEventListener('change', loadTasks);
+
+        // 초기 로드
+        loadTasks();
+        loadDatesWithData();
+        renderMiniCalendar();
+
+        // Firebase 연결 상태 확인
+        const connectedRef = window.firebaseRef(window.firebaseDB, '.info/connected');
+        window.firebaseGet(connectedRef).then((snapshot) => {
+            if (snapshot.val() === true) {
+                console.log('Firebase에 성공적으로 연결되었습니다.');
+                showMessage('Firebase 연결 완료! 📱', 'success');
+            } else {
+                console.log('Firebase 연결이 끊어졌습니다.');
+                showMessage('오프라인 모드로 작동합니다.', 'error');
+            }
+        }).catch((error) => {
+            console.log('Firebase 연결 확인 실패:', error);
+            showMessage('로컬 모드로 작동합니다.', 'error');
+        });
+
+    </script>
+</body>
+</html>
