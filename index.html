@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이젠하워 매트릭스 - 일일 업무 관리</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e8f4f8 0%, #d6e9f0 50%, #c4dde8 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1a202c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #2d3748;
+        }
+
+        .calendar-btn {
+            background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(159, 122, 234, 0.3);
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(159, 122, 234, 0.4);
+        }
+
+        .date-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .date-input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .date-input:focus {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        /* 캘린더 모달 스타일 */
+        .calendar-modal, .search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-modal.show, .search-modal.show {
+            display: flex;
+        }
+
+        .calendar-content, .search-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .calendar-header, .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .nav-btn, .close-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover, .close-btn:hover {
+            background: #3182ce;
+            transform: scale(1.05);
+        }
+
+        .close-btn {
+            background: #e53e3e;
+        }
+
+        .close-btn:hover {
+            background: #c53030;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .calendar-day:hover {
+            background: #e2e8f0;
+            transform: scale(1.05);
+        }
+
+        .calendar-day.today {
+            background: #4299e1;
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background: #2d3748;
+            color: white;
+        }
+
+        .calendar-day.has-data {
+            background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+            color: white;
+        }
+
+        .calendar-day.has-data::after {
+            content: '●';
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.6rem;
+        }
+
+        .calendar-day.other-month {
+            color: #cbd5e0;
+        }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .search-result-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid #4299e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-result-item:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+
+        .search-result-date {
+            font-size: 0.85rem;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .search-result-task {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .search-result-quadrant {
+            font-size: 0.8rem;
+            color: #4a5568;
+            font-style: italic;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(66, 153, 225, 0.4);
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .quadrant {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quadrant:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+        }
+
+        .quadrant::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .quadrant-1::before { background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%); }
+        .quadrant-2::before { background: linear-gradient(135deg, #68d391 0%, #38a169 100%); }
+        .quadrant-3::before { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); }
+        .quadrant-4::before { background: linear-gradient(135deg, #a0aec0 0%, #718096 100%); }
+
+        .quadrant-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .quadrant-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .quadrant-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        .quadrant-subtitle {
+            font-size: 0.95rem;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .task-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .task-input:focus {
+            border-color: #4299e1;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .quadrant-1 .task-input:focus { border-color: #e53e3e; box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1); }
+        .quadrant-2 .task-input:focus { border-color: #38a169; box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1); }
+        .quadrant-3 .task-input:focus { border-color: #ed8936; box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.1); }
+        .quadrant-4 .task-input:focus { border-color: #718096; box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.1); }
+
+        .add-task-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            background: transparent;
+            color: #718096;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            border-color: #4299e1;
+            color: #4299e1;
+            background: rgba(66, 153, 225, 0.05);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quadrant-1 .task-item { border-left-color: #e53e3e; }
+        .quadrant-2 .task-item { border-left-color: #38a169; }
+        .quadrant-3 .task-item { border-left-color: #ed8936; }
+        .quadrant-4 .task-item { border-left-color: #718096; }
+
+        .task-item:hover {
+            background: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .task-checkbox {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4299e1;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+            color: #2d3748;
+            transition: all 0.3s ease;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+            color: #718096;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: #c53030;
+            transform: scale(1.05);
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calendar-overview {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .calendar-overview:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+        }
+
+        .calendar-overview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 5px;
+        }
+
+        .nav-btn.small {
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        .mini-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 15px;
+        }
+
+        .mini-day-header {
+            text-align: center;
+            padding: 5px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #718096;
+        }
+
+        .mini-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .mini-day:hover {
+            background: #e2e8f0;
+            transform: scale(1.1);
+        }
+
+        .mini-day.today {
+            background: #4299e1;
+            color: white;
+            font-weight: bold;
+        }
+
+        .mini-day.selected {
+            background: #2d3748;
+            color: white;
+        }
+
+        .mini-day.has-data {
+            background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+            color: white;
+        }
+
+        .mini-day.has-data::after {
+            content: '●';
+            position: absolute;
+            bottom: 0;
+            right: 1px;
+            font-size: 0.4rem;
+        }
+
+        .mini-day.other-month {
+            color: #cbd5e0;
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.today { background: #4299e1; }
+        .legend-dot.has-data { background: linear-gradient(135deg, #68d391 0%, #38a169 100%); }
+        .legend-dot.selected { background: #2d3748; }
+
+        .stats-card, .quadrant-stats {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover, .quadrant-stats:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+        }
+
+        .stats-header {
+            margin-bottom: 20px;
+        }
+
+        .stats-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .stats-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-ring {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-bg {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 6;
+        }
+
+        .progress-bar {
+            fill: none;
+            stroke: #4299e1;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 220;
+            stroke-dashoffset: 220;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stats-details {
+            width: 100%;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stat-value.completed {
+            color: #38a169;
+        }
+
+        .stat-value.pending {
+            color: #ed8936;
+        }
+
+        .quadrant-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .breakdown-item:hover {
+            transform: translateX(5px);
+        }
+
+        .breakdown-item.q1 { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+        .breakdown-item.q2 { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+        .breakdown-item.q3 { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+        .breakdown-item.q4 { background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); }
+
+        .breakdown-icon {
+            font-size: 1.5rem;
+        }
+
+        .breakdown-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breakdown-label {
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .breakdown-count {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        /* 드래그 앤 드롭 스타일 */
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            cursor: move;
+            user-select: none;
+        }
+
+        .task-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+            z-index: 1000;
+        }
+
+        .quadrant.drag-over {
+            background: rgba(66, 153, 225, 0.1);
+            border: 2px dashed #4299e1;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+            color: #718096;
+        }
+
+        .task-item.completed {
+            background: #e6fffa;
+            border-left-color: #38a169;
+        }
+
+        .task-item.completed .task-checkbox {
+            accent-color: #38a169;
+        }
+
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .status-message.show {
+            transform: translateX(0);
+        }
+
+        .status-message.success {
+            background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+        }
+
+        .status-message.error {
+            background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+        }
+
+        .cute-character {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #81e6d9 0%, #4fd1c7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 8px 32px rgba(79, 209, 199, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .cute-character:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        @media (max-width: 768px) {
+            .matrix-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 0 10px;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .feature-cards {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stats-content {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+
+            .progress-ring {
+                flex-shrink: 0;
+            }
+
+            .stats-details {
+                flex: 1;
+                margin-left: 15px;
+            }
+
+            .calendar-content, .search-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .calendar-day {
+                font-size: 0.9rem;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .matrix-labels {
+            display: none;
+        }
+
+        .axis-label {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">업무 우선순위 매트릭스</h1>
+            <p class="subtitle">— 효율적인 일정 관리를 위한 도구</p>
+        </div>
+
+        <div class="feature-cards">
+            <div class="calendar-overview">
+                <div class="calendar-overview-header">
+                    <h3 id="overview-title">2025년 6월</h3>
+                    <div class="calendar-nav">
+                        <button class="nav-btn small" onclick="changeOverviewMonth(-1)">‹</button>
+                        <button class="nav-btn small" onclick="changeOverviewMonth(1)">›</button>
+                    </div>
+                </div>
+                <div class="mini-calendar" id="mini-calendar">
+                    <!-- 미니 캘린더가 여기에 생성됩니다 -->
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot has-data"></div>
+                        <span>업무 있음</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot selected"></div>
+                        <span>선택된 날짜</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-header">
+                    <h3>📊 오늘의 업무 통계</h3>
+                </div>
+                <div class="stats-content">
+                    <div class="progress-ring">
+                        <svg class="progress-svg" width="80" height="80">
+                            <circle class="progress-bg" cx="40" cy="40" r="35"></circle>
+                            <circle class="progress-bar" cx="40" cy="40" r="35" id="progress-circle"></circle>
+                        </svg>
+                        <div class="progress-text" id="progress-text">0%</div>
+                    </div>
+                    <div class="stats-details">
+                        <div class="stat-item">
+                            <span class="stat-label">전체 업무</span>
+                            <span class="stat-value" id="total-tasks">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">완료</span>
+                            <span class="stat-value completed" id="completed-tasks">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">진행 중</span>
+                            <span class="stat-value pending" id="pending-tasks">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quadrant-stats">
+                <div class="stats-header">
+                    <h3>🎯 사분면별 현황</h3>
+                </div>
+                <div class="quadrant-breakdown">
+                    <div class="breakdown-item q1">
+                        <div class="breakdown-icon">🚨</div>
+                        <div class="breakdown-info">
+                            <span class="breakdown-label">긴급+중요</span>
+                            <span class="breakdown-count" id="q1-count">0</span>
+                        </div>
+                    </div>
+                    <div class="breakdown-item q2">
+                        <div class="breakdown-icon">📋</div>
+                        <div class="breakdown-info">
+                            <span class="breakdown-label">중요</span>
+                            <span class="breakdown-count" id="q2-count">0</span>
+                        </div>
+                    </div>
+                    <div class="breakdown-item q3">
+                        <div class="breakdown-icon">🤝</div>
+                        <div class="breakdown-info">
+                            <span class="breakdown-label">긴급</span>
+                            <span class="breakdown-count" id="q3-count">0</span>
+                        </div>
+                    </div>
+                    <div class="breakdown-item q4">
+                        <div class="breakdown-icon">🗑️</div>
+                        <div class="breakdown-info">
+                            <span class="breakdown-label">제거 대상</span>
+                            <span class="breakdown-count" id="q4-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" id="search-tasks" class="search-input" placeholder="모든 날짜에서 업무 검색...">
+                <button class="search-btn" onclick="searchTasks()">검색</button>
+            </div>
+            <button class="calendar-btn" onclick="toggleCalendar()">📅 캘린더</button>
+            <div class="date-container">
+                <input type="date" id="task-date" class="date-input">
+            </div>
+            <button class="save-btn" onclick="saveTasks()">💾 저장하기</button>
+        </div>
+
+        <!-- 캘린더 모달 -->
+        <div id="calendar-modal" class="calendar-modal">
+            <div class="calendar-content">
+                <div class="calendar-header">
+                    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                    <h3 id="calendar-title">2025년 6월</h3>
+                    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                    <button class="close-btn" onclick="toggleCalendar()">✕</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- 캘린더 날짜들이 여기에 동적으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색 결과 모달 -->
+        <div id="search-modal" class="search-modal">
+            <div class="search-content">
+                <div class="search-header">
+                    <h3>검색 결과</h3>
+                    <button class="close-btn" onclick="toggleSearchModal()">✕</button>
+                </div>
+                <div id="search-results" class="search-results">
+                    <!-- 검색 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="matrix-grid">
+            <!-- 1사분면: 중요하고 긴급한 일 -->
+            <div class="quadrant quadrant-1" data-quadrant="1">
+                <div class="quadrant-header">
+                    <span class="quadrant-emoji">🚨</span>
+                    <div class="quadrant-title">DO (즉시 실행)</div>
+                    <div class="quadrant-subtitle">중요하고 긴급한 일</div>
+                </div>
+                <div class="task-input-container">
+                    <input type="text" class="task-input" placeholder="위기 상황이나 마감 임박한 중요 업무를 입력하세요..." onkeypress="handleTaskInput(event, 1)">
+                </div>
+                <button class="add-task-btn" onclick="addTask(1)">+ 긴급 중요 업무 추가</button>
+                <ul class="task-list" id="tasks-1"></ul>
+            </div>
+
+            <!-- 2사분면: 중요하지만 긴급하지 않은 일 -->
+            <div class="quadrant quadrant-2" data-quadrant="2">
+                <div class="quadrant-header">
+                    <span class="quadrant-emoji">📋</span>
+                    <div class="quadrant-title">PLAN (계획 수립)</div>
+                    <div class="quadrant-subtitle">중요하지만 긴급하지 않은 일</div>
+                </div>
+                <div class="task-input-container">
+                    <input type="text" class="task-input" placeholder="장기 목표나 개발을 위한 중요한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 2)">
+                </div>
+                <button class="add-task-btn" onclick="addTask(2)">+ 전략적 업무 추가</button>
+                <ul class="task-list" id="tasks-2"></ul>
+            </div>
+
+            <!-- 3사분면: 긴급하지만 중요하지 않은 일 -->
+            <div class="quadrant quadrant-3" data-quadrant="3">
+                <div class="quadrant-header">
+                    <span class="quadrant-emoji">🤝</span>
+                    <div class="quadrant-title">DELEGATE (위임)</div>
+                    <div class="quadrant-subtitle">긴급하지만 중요하지 않은 일</div>
+                </div>
+                <div class="task-input-container">
+                    <input type="text" class="task-input" placeholder="다른 사람에게 맡길 수 있는 급한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 3)">
+                </div>
+                <button class="add-task-btn" onclick="addTask(3)">+ 위임 가능 업무 추가</button>
+                <ul class="task-list" id="tasks-3"></ul>
+            </div>
+
+            <!-- 4사분면: 중요하지도 긴급하지도 않은 일 -->
+            <div class="quadrant quadrant-4" data-quadrant="4">
+                <div class="quadrant-header">
+                    <span class="quadrant-emoji">🗑️</span>
+                    <div class="quadrant-title">DELETE (제거)</div>
+                    <div class="quadrant-subtitle">중요하지도 긴급하지도 않은 일</div>
+                </div>
+                <div class="task-input-container">
+                    <input type="text" class="task-input" placeholder="제거하거나 최소화할 수 있는 업무를 입력하세요..." onkeypress="handleTaskInput(event, 4)">
+                </div>
+                <button class="add-task-btn" onclick="addTask(4)">+ 제거 대상 업무 추가</button>
+                <ul class="task-list" id="tasks-4"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="cute-character" onclick="showTip()">🎯</div>
+    <div id="status-message" class="status-message"></div>
+
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTj21V2oVijNfcm1DQoG_x84VDQgCTFfI",
+            authDomain: "eisenhower-matrix-6f550.firebaseapp.com",
+            databaseURL: "https://eisenhower-matrix-6f550-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "eisenhower-matrix-6f550",
+            storageBucket: "eisenhower-matrix-6f550.firebasestorage.app",
+            messagingSenderId: "366336435801",
+            appId: "1:366336435801:web:0dec8ef47db225e2ec3348"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // 데이터 구조
+        let tasks = {
+            1: [],
+            2: [],
+            3: [],
+            4: []
+        };
+
+        // 현재 사용자 ID
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+
+        // 캘린더 관련 변수
+        let currentCalendarDate = new Date();
+        let currentOverviewDate = new Date();
+        let datesWithData = new Set();
+
+        // 드래그 앤 드롭 관련 변수
+        let draggedTask = null;
+
+        // 오늘 날짜로 초기 설정
+        document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
+
+        function handleTaskInput(event, quadrant) {
+            if (event.key === 'Enter') {
+                addTask(quadrant);
+            }
+        }
+
+        // 검색 입력 이벤트
+        document.getElementById('search-tasks').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                searchTasks();
+            }
+        });
+
+        // 캘린더 토글
+        function toggleCalendar() {
+            const modal = document.getElementById('calendar-modal');
+            modal.classList.toggle('show');
+            if (modal.classList.contains('show')) {
+                renderCalendar();
+            }
+        }
+
+        // 검색 모달 토글
+        function toggleSearchModal() {
+            const modal = document.getElementById('search-modal');
+            modal.classList.toggle('show');
+        }
+
+        // 미니 캘린더 월 변경
+        function changeOverviewMonth(direction) {
+            currentOverviewDate.setMonth(currentOverviewDate.getMonth() + direction);
+            renderMiniCalendar();
+        }
+
+        // 캘린더 월 변경
+        function changeMonth(direction) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        // 미니 캘린더 렌더링
+        function renderMiniCalendar() {
+            const grid = document.getElementById('mini-calendar');
+            const title = document.getElementById('overview-title');
+            
+            const year = currentOverviewDate.getFullYear();
+            const month = currentOverviewDate.getMonth();
+            
+            title.textContent = `${year}년 ${month + 1}월`;
+            
+            grid.innerHTML = '';
+            
+            const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'mini-day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+            
+            const firstDay = new Date(year, month, 1);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const today = new Date().toISOString().split('T')[0];
+            const selectedDate = document.getElementById('task-date').value;
+            
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dateStr = date.toISOString().split('T')[0];
+                const dayElement = document.createElement('div');
+                dayElement.className = 'mini-day';
+                dayElement.textContent = date.getDate();
+                
+                if (date.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+                if (dateStr === today) {
+                    dayElement.classList.add('today');
+                }
+                if (dateStr === selectedDate) {
+                    dayElement.classList.add('selected');
+                }
+                if (datesWithData.has(dateStr)) {
+                    dayElement.classList.add('has-data');
+                }
+                
+                dayElement.addEventListener('click', () => {
+                    document.getElementById('task-date').value = dateStr;
+                    loadTasks();
+                });
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        // 캘린더 렌더링
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const title = document.getElementById('calendar-title');
+            
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            title.textContent = `${year}년 ${month + 1}월`;
+            
+            grid.innerHTML = '';
+            
+            const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+            
+            const firstDay = new Date(year, month, 1);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const today = new Date().toISOString().split('T')[0];
+            const selectedDate = document.getElementById('task-date').value;
+            
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dateStr = date.toISOString().split('T')[0];
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = date.getDate();
+                
+                if (date.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+                if (dateStr === today) {
+                    dayElement.classList.add('today');
+                }
+                if (dateStr === selectedDate) {
+                    dayElement.classList.add('selected');
+                }
+                if (datesWithData.has(dateStr)) {
+                    dayElement.classList.add('has-data');
+                }
+                
+                dayElement.addEventListener('click', () => {
+                    document.getElementById('task-date').value = dateStr;
+                    loadTasks();
+                    toggleCalendar();
+                });
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function addTask(quadrant) {
+            const input = document.querySelector(`[data-quadrant="${quadrant}"] .task-input`);
+            const taskText = input.value.trim();
+            
+            if (taskText === '') {
+                showMessage('업무 내용을 입력해주세요.', 'error');
+                return;
+            }
+
+            const task = {
+                id: Date.now().toString(),
+                text: taskText,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks[quadrant].push(task);
+            input.value = '';
+            renderTasks(quadrant);
+            
+            saveTasks();
+            loadDatesWithData();
+            
+            showMessage('업무가 추가되었습니다.', 'success');
+        }
+
+        function toggleTask(quadrant, taskId) {
+            const task = tasks[quadrant].find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                
+                if (task.completed) {
+                    showMessage(celebrateCompletion(), 'success');
+                }
+                
+                renderTasks(quadrant);
+                updateTaskStats();
+                saveTasks();
+            }
+        }
+
+        function deleteTask(quadrant, taskId) {
+            tasks[quadrant] = tasks[quadrant].filter(t => t.id !== taskId);
+            renderTasks(quadrant);
+            saveTasks();
+            loadDatesWithData();
+            showMessage('업무가 삭제되었습니다.', 'success');
+        }
+
+        function renderTasks(quadrant) {
+            const taskList = document.getElementById(`tasks-${quadrant}`);
+            taskList.innerHTML = '';
+
+            if (tasks[quadrant].length === 0) {
+                const emptyMessage = document.createElement('li');
+                emptyMessage.className = 'loading';
+                emptyMessage.textContent = '등록된 업무가 없습니다.';
+                taskList.appendChild(emptyMessage);
+                return;
+            }
+
+            tasks[quadrant].forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+                li.draggable = true;
+                li.dataset.taskId = task.id;
+                li.dataset.quadrant = quadrant;
+                
+                li.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTask(${quadrant}, '${task.id}')">
+                    <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
+                    <button class="delete-btn" onclick="deleteTask(${quadrant}, '${task.id}')">삭제</button>
+                `;
+                
+                li.addEventListener('dragstart', handleDragStart);
+                li.addEventListener('dragend', handleDragEnd);
+                
+                taskList.appendChild(li);
+            });
+        }
+
+        function saveTasks() {
+            const selectedDate = document.getElementById('task-date').value;
+            if (!selectedDate) {
+                showMessage('날짜를 선택해주세요.', 'error');
+                return;
+            }
+
+            const dataToSave = {
+                date: selectedDate,
+                tasks: tasks,
+                lastUpdated: new Date().toISOString(),
+                userId: userId
+            };
+
+            // Firebase Realtime Database에 저장
+            database.ref(`eisenhower-tasks/${userId}/${selectedDate}`).set(dataToSave)
+                .then(() => {
+                    loadDatesWithData();
+                    showMessage('Firebase에 저장되었습니다! 🎉', 'success');
+                })
+                .catch((error) => {
+                    console.error('Firebase 저장 실패:', error);
+                    // Firebase 실패시 로컬 저장으로 대체
+                    localStorage.setItem(`eisenhower-${selectedDate}`, JSON.stringify(dataToSave));
+                    showMessage('로컬에 저장되었습니다.', 'success');
+                });
+        }
+
+        function loadTasks() {
+            const selectedDate = document.getElementById('task-date').value;
+            
+            // Firebase에서 데이터 불러오기
+            database.ref(`eisenhower-tasks/${userId}/${selectedDate}`).once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        tasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
+                        showMessage('Firebase에서 데이터를 불러왔습니다.', 'success');
+                    } else {
+                        // Firebase에 데이터가 없으면 로컬에서 시도
+                        loadFromLocal(selectedDate);
+                    }
+                    renderAllTasks();
+                })
+                .catch((error) => {
+                    console.error('Firebase 불러오기 실패:', error);
+                    loadFromLocal(selectedDate);
+                });
+        }
+
+        function loadFromLocal(date) {
+            const saved = localStorage.getItem(`eisenhower-${date}`);
+            if (saved) {
+                const data = JSON.parse(saved);
+                tasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
+                showMessage('로컬 데이터를 불러왔습니다.', 'success');
+            } else {
+                tasks = { 1: [], 2: [], 3: [], 4: [] };
+            }
+            renderAllTasks();
+        }
+
+        function renderAllTasks() {
+            for (let i = 1; i <= 4; i++) {
+                renderTasks(i);
+            }
+            updateTaskStats();
+            renderMiniCalendar();
+        }
+
+        function loadDatesWithData() {
+            // Firebase에서 데이터가 있는 날짜들 로드
+            database.ref(`eisenhower-tasks/${userId}`).once('value')
+                .then((snapshot) => {
+                    datesWithData.clear();
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        Object.keys(data).forEach(date => {
+                            const dayTasks = data[date].tasks;
+                            const hasAnyTask = Object.values(dayTasks).some(quadrant => quadrant.length > 0);
+                            if (hasAnyTask) {
+                                datesWithData.add(date);
+                            }
+                        });
+                    }
+                    
+                    // 로컬 저장소도 확인
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('eisenhower-')) {
+                            const date = key.replace('eisenhower-', '');
+                            const data = JSON.parse(localStorage.getItem(key));
+                            const hasAnyTask = Object.values(data.tasks).some(quadrant => quadrant.length > 0);
+                            if (hasAnyTask) {
+                                datesWithData.add(date);
+                            }
+                        }
+                    }
+                    
+                    renderMiniCalendar();
+                })
+                .catch((error) => {
+                    console.error('Firebase 날짜 데이터 로드 실패:', error);
+                    // Firebase 실패시 로컬만 확인
+                    datesWithData.clear();
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('eisenhower-')) {
+                            const date = key.replace('eisenhower-', '');
+                            const data = JSON.parse(localStorage.getItem(key));
+                            const hasAnyTask = Object.values(data.tasks).some(quadrant => quadrant.length > 0);
+                            if (hasAnyTask) {
+                                datesWithData.add(date);
+                            }
+                        }
+                    }
+                    renderMiniCalendar();
+                });
+        }
+
+        function searchTasks() {
+            const searchTerm = document.getElementById('search-tasks').value.trim().toLowerCase();
+            if (!searchTerm) {
+                showMessage('검색어를 입력해주세요.', 'error');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('search-results');
+            resultsContainer.innerHTML = '<div class="loading">검색 중...</div>';
+            toggleSearchModal();
+
+            // Firebase에서 검색
+            database.ref(`eisenhower-tasks/${userId}`).once('value')
+                .then((snapshot) => {
+                    const results = [];
+                    
+                    if (snapshot.exists()) {
+                        const allData = snapshot.val();
+                        
+                        Object.keys(allData).forEach(date => {
+                            const dayData = allData[date];
+                            if (dayData.tasks) {
+                                Object.keys(dayData.tasks).forEach(quadrant => {
+                                    dayData.tasks[quadrant].forEach(task => {
+                                        if (task.text.toLowerCase().includes(searchTerm)) {
+                                            results.push({
+                                                date: date,
+                                                quadrant: quadrant,
+                                                task: task,
+                                                quadrantName: getQuadrantName(quadrant)
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    }
+                    
+                    // 로컬 저장소에서도 검색
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('eisenhower-')) {
+                            const date = key.replace('eisenhower-', '');
+                            const data = JSON.parse(localStorage.getItem(key));
+                            
+                            Object.keys(data.tasks).forEach(quadrant => {
+                                data.tasks[quadrant].forEach(task => {
+                                    if (task.text.toLowerCase().includes(searchTerm)) {
+                                        // 중복 제거 (같은 날짜의 같은 업무)
+                                        const isDuplicate = results.some(r => 
+                                            r.date === date && r.task.id === task.id
+                                        );
+                                        if (!isDuplicate) {
+                                            results.push({
+                                                date: date,
+                                                quadrant: quadrant,
+                                                task: task,
+                                                quadrantName: getQuadrantName(quadrant)
+                                            });
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    
+                    displaySearchResults(results, searchTerm);
+                })
+                .catch((error) => {
+                    console.error('Firebase 검색 실패:', error);
+                    // Firebase 실패시 로컬만 검색
+                    const results = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('eisenhower-')) {
+                            const date = key.replace('eisenhower-', '');
+                            const data = JSON.parse(localStorage.getItem(key));
+                            
+                            Object.keys(data.tasks).forEach(quadrant => {
+                                data.tasks[quadrant].forEach(task => {
+                                    if (task.text.toLowerCase().includes(searchTerm)) {
+                                        results.push({
+                                            date: date,
+                                            quadrant: quadrant,
+                                            task: task,
+                                            quadrantName: getQuadrantName(quadrant)
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    displaySearchResults(results, searchTerm);
+                });
+        }
+
+        function getQuadrantName(quadrant) {
+            const names = {
+                '1': '🚨 DO (즉시 실행)',
+                '2': '📋 PLAN (계획 수립)',
+                '3': '🤝 DELEGATE (위임)',
+                '4': '🗑️ DELETE (제거)'
+            };
+            return names[quadrant] || '';
+        }
+
+        function displaySearchResults(results, searchTerm) {
+            const container = document.getElementById('search-results');
+            
+            if (results.length === 0) {
+                container.innerHTML = `<div class="no-results">"${searchTerm}"에 대한 검색 결과가 없습니다.</div>`;
+                return;
+            }
+
+            results.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = results.map(result => `
+                <div class="search-result-item" onclick="goToDate('${result.date}')">
+                    <div class="search-result-date">${formatDate(result.date)}</div>
+                    <div class="search-result-task">${highlightSearchTerm(result.task.text, searchTerm)}</div>
+                    <div class="search-result-quadrant">${result.quadrantName}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${year}년 ${month}월 ${day}일`;
+        }
+
+        function highlightSearchTerm(text, searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<mark style="background: #fef3c7; padding: 2px 4px; border-radius: 4px;">$1</mark>');
+        }
+
+        function goToDate(date) {
+            document.getElementById('task-date').value = date;
+            loadTasks();
+            toggleSearchModal();
+            showMessage(`${formatDate(date)}로 이동했습니다.`, 'success');
+        }
+
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('status-message');
+            messageEl.textContent = message;
+            messageEl.className = `status-message ${type} show`;
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+
+        function handleDragStart(e) {
+            draggedTask = {
+                id: e.target.dataset.taskId,
+                fromQuadrant: e.target.dataset.quadrant,
+                element: e.target
+            };
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            
+            document.querySelectorAll('.quadrant').forEach(quad => {
+                quad.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            if (e.target.classList.contains('quadrant')) {
+                e.target.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('quadrant')) {
+                e.target.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropQuadrant = e.currentTarget.dataset.quadrant;
+            
+            if (draggedTask && dropQuadrant && draggedTask.fromQuadrant !== dropQuadrant) {
+                moveTask(draggedTask.fromQuadrant, dropQuadrant, draggedTask.id);
+            }
+            
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function moveTask(fromQuadrant, toQuadrant, taskId) {
+            const taskIndex = tasks[fromQuadrant].findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                const task = tasks[fromQuadrant][taskIndex];
+                
+                tasks[fromQuadrant].splice(taskIndex, 1);
+                tasks[toQuadrant].push(task);
+                
+                renderTasks(fromQuadrant);
+                renderTasks(toQuadrant);
+                updateTaskStats();
+                
+                saveTasks();
+                
+                const quadrantNames = {
+                    '1': '긴급+중요',
+                    '2': '중요',
+                    '3': '긴급', 
+                    '4': '제거 대상'
+                };
+                showMessage(`업무를 ${quadrantNames[toQuadrant]} 사분면으로 이동했습니다.`, 'success');
+            }
+        }
+
+        function updateTaskStats() {
+            const stats = {
+                total: 0,
+                completed: 0,
+                byQuadrant: { 1: 0, 2: 0, 3: 0, 4: 0 }
+            };
+
+            Object.keys(tasks).forEach(quadrant => {
+                tasks[quadrant].forEach(task => {
+                    stats.total++;
+                    stats.byQuadrant[quadrant]++;
+                    if (task.completed) {
+                        stats.completed++;
+                    }
+                });
+            });
+
+            const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+            
+            document.getElementById('total-tasks').textContent = stats.total;
+            document.getElementById('completed-tasks').textContent = stats.completed;
+            document.getElementById('pending-tasks').textContent = stats.total - stats.completed;
+            document.getElementById('progress-text').textContent = `${progress}%`;
+            
+            document.getElementById('q1-count').textContent = stats.byQuadrant[1];
+            document.getElementById('q2-count').textContent = stats.byQuadrant[2];
+            document.getElementById('q3-count').textContent = stats.byQuadrant[3];
+            document.getElementById('q4-count').textContent = stats.byQuadrant[4];
+            
+            const circle = document.getElementById('progress-circle');
+            const circumference = 2 * Math.PI * 35;
+            const offset = circumference - (progress / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function celebrateCompletion() {
+            const celebrations = [
+                "🎉 훌륭해요! 하나 더 완료!",
+                "✨ 잘하고 있어요!",
+                "🌟 계속 이런 식으로!",
+                "🚀 멋져요! 다음 업무도 화이팅!",
+                "👏 완료! 성취감이 느껴지네요!",
+                "💪 대단해요! 계속 진행하세요!",
+                "🔥 불타는 열정이네요!",
+                "⭐ 완벽한 진행입니다!"
+            ];
+            
+            return celebrations[Math.floor(Math.random() * celebrations.length)];
+        }
+
+        function showTip() {
+            const tips = [
+                "💡 제2사분면(중요하지만 긴급하지 않은 일)에 집중하세요!",
+                "🎯 제1사분면의 업무가 너무 많다면 계획을 재검토해보세요.",
+                "🤝 제3사분면의 업무는 적극적으로 위임하거나 거절하세요.",
+                "🗑
+                        <div class="legend-dot today"></div>
+                        <span>오늘</span>
+                    </div>
+                    <div class="legend-item">
