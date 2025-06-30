@@ -4,8 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아이젠하워 매트릭스 - 일일 업무 관리</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTj21V2oVijNfcm1DQoG_x84VDQgCTFfI",
+            authDomain: "eisenhower-matrix-6f550.firebaseapp.com",
+            databaseURL: "https://eisenhower-matrix-6f550-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "eisenhower-matrix-6f550",
+            storageBucket: "eisenhower-matrix-6f550.firebasestorage.app",
+            messagingSenderId: "366336435801",
+            appId: "1:366336435801:web:0dec8ef47db225e2ec3348"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        // Firebase 설정 확인 로그
+        console.log('🔥 Firebase 초기화 완료');
+        console.log('📍 Database URL:', firebaseConfig.databaseURL);
+        console.log('🆔 Project ID:', firebaseConfig.projectId);
     <style>
         * {
             margin: 0;
@@ -1144,9 +1166,17 @@
             appId: "1:366336435801:web:0dec8ef47db225e2ec3348"
         };
 
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Firebase 연결 상태 확인
+        const connectedRef = ref(database, '.info/connected');
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                console.log('✅ Firebase 연결됨');
+                showMessage('Firebase 연결됨', 'success');
+            } else {
+                console.log('❌ Firebase 연결 끊김');
+                showMessage('Firebase 연결 끊김 - 로컬 저장소 사용', 'error');
+            }
+        });
 
         // 데이터 구조
         let tasks = {
@@ -1156,8 +1186,13 @@
             4: []
         };
 
-        // 현재 사용자 ID
-        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        // 현재 사용자 ID (고정된 ID 사용)
+        let userId = localStorage.getItem('eisenhower-user-id');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('eisenhower-user-id', userId);
+        }
+        console.log('사용자 ID:', userId);
 
         // 캘린더 관련 변수
         let currentCalendarDate = new Date();
@@ -1423,31 +1458,56 @@
                 userId: userId
             };
 
-            // Firebase Realtime Database에 저장
-            database.ref(`eisenhower-tasks/${userId}/${selectedDate}`).set(dataToSave)
+            console.log('저장 시도:', {
+                userId: userId,
+                date: selectedDate,
+                taskCount: Object.values(tasks).reduce((sum, arr) => sum + arr.length, 0)
+            });
+
+            // Firebase Realtime Database에 저장 (v9+ 문법)
+            const dbPath = `eisenhower-tasks/${userId}/${selectedDate}`;
+            console.log('Firebase 경로:', dbPath);
+
+            const dbRef = ref(database, dbPath);
+            set(dbRef, dataToSave)
                 .then(() => {
+                    console.log('✅ Firebase 저장 성공');
                     loadDatesWithData();
                     showMessage('Firebase에 저장되었습니다! 🎉', 'success');
                 })
                 .catch((error) => {
-                    console.error('Firebase 저장 실패:', error);
+                    console.error('❌ Firebase 저장 실패:', error);
+                    console.error('에러 코드:', error.code);
+                    console.error('에러 메시지:', error.message);
+                    
                     // Firebase 실패시 로컬 저장으로 대체
                     localStorage.setItem(`eisenhower-${selectedDate}`, JSON.stringify(dataToSave));
-                    showMessage('로컬에 저장되었습니다.', 'success');
+                    showMessage(`로컬에 저장됨 (Firebase 오류: ${error.code})`, 'error');
                 });
         }
 
         function loadTasks() {
             const selectedDate = document.getElementById('task-date').value;
             
-            // Firebase에서 데이터 불러오기
-            database.ref(`eisenhower-tasks/${userId}/${selectedDate}`).once('value')
+            console.log('데이터 로드 시도:', {
+                userId: userId,
+                date: selectedDate
+            });
+
+            // Firebase에서 데이터 불러오기 (v9+ 문법)
+            const dbPath = `eisenhower-tasks/${userId}/${selectedDate}`;
+            const dbRef = ref(database, dbPath);
+            
+            get(dbRef)
                 .then((snapshot) => {
+                    console.log('Firebase 응답:', snapshot.exists());
                     if (snapshot.exists()) {
                         const data = snapshot.val();
+                        console.log('Firebase 데이터:', data);
                         tasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
                         showMessage('Firebase에서 데이터를 불러왔습니다.', 'success');
                     } else {
+                        console.log('Firebase에 데이터 없음, 로컬 확인');
                         // Firebase에 데이터가 없으면 로컬에서 시도
                         loadFromLocal(selectedDate);
                     }
@@ -1480,8 +1540,9 @@
         }
 
         function loadDatesWithData() {
-            // Firebase에서 데이터가 있는 날짜들 로드
-            database.ref(`eisenhower-tasks/${userId}`).once('value')
+            // Firebase에서 데이터가 있는 날짜들 로드 (v9+ 문법)
+            const dbRef = ref(database, `eisenhower-tasks/${userId}`);
+            get(dbRef)
                 .then((snapshot) => {
                     datesWithData.clear();
                     if (snapshot.exists()) {
@@ -1540,8 +1601,9 @@
             resultsContainer.innerHTML = '<div class="loading">검색 중...</div>';
             toggleSearchModal();
 
-            // Firebase에서 검색
-            database.ref(`eisenhower-tasks/${userId}`).once('value')
+            // Firebase에서 검색 (v9+ 문법)
+            const dbRef = ref(database, `eisenhower-tasks/${userId}`);
+            get(dbRef)
                 .then((snapshot) => {
                     const results = [];
                     
