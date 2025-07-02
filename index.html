@@ -1466,6 +1466,12 @@
             return koreaTime.toISOString().split('T')[0];
         }
 
+        // YYYY-MM-DD → KST Date 객체로 변환
+        function parseKoreanDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day, 0, 0, 0);
+        }
+
         // 오늘 날짜로 초기 설정 (한국 시간 기준)
         document.getElementById('task-date').value = getKoreanDate();
 
