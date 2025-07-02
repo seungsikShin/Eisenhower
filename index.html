@@ -1461,15 +1461,12 @@
 
         // 1. 날짜 처리 함수 (한국 시간 기준)
         function getKoreanDate(date = new Date()) {
-            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-            const koreaTime = new Date(utc + (9 * 60 * 60 * 1000));
-            return koreaTime.toISOString().split('T')[0];
+            return date.toISOString().split('T')[0];
         }
 
-        // YYYY-MM-DD → KST Date 객체로 변환
+        // 2. parseKoreanDate 함수 교체
         function parseKoreanDate(dateStr) {
-            const [year, month, day] = dateStr.split('-').map(Number);
-            return new Date(year, month - 1, day, 0, 0, 0);
+            return new Date(dateStr + 'T00:00:00');
         }
 
         // 오늘 날짜로 초기 설정 (한국 시간 기준)
@@ -1720,25 +1717,24 @@
                 grid.appendChild(dayHeader);
             });
 
-            // date picker와 동일하게: 1일에서 getDay()만큼 빼서 일요일부터 시작
-            const firstDateObj = new Date(year, month, 1);
-            const firstDayOfWeek = firstDateObj.getDay();
-            const startDateObj = new Date(year, month, 1 - firstDayOfWeek);
-            const startDateStr = getKoreanDate(startDateObj);
+            // 날짜 계산 부분 교체
+            const firstDate = new Date(year, month, 1);
+            const firstDayOfWeek = firstDate.getDay();
+            const startDate = new Date(year, month, 1 - firstDayOfWeek);
 
-            const today = getKoreanDate();
+            const today = new Date().toISOString().split('T')[0];
             const selectedDate = document.getElementById('task-date').value;
 
             for (let i = 0; i < 42; i++) {
-                const loopDateObj = parseKoreanDate(startDateStr);
-                loopDateObj.setDate(loopDateObj.getDate() + i);
-                const dateStr = getKoreanDate(loopDateObj);
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                const dateStr = currentDate.toISOString().split('T')[0];
 
                 const dayElement = document.createElement('div');
                 dayElement.className = 'mini-day';
-                dayElement.textContent = loopDateObj.getDate();
+                dayElement.textContent = currentDate.getDate();
 
-                if (loopDateObj.getMonth() !== month) {
+                if (currentDate.getMonth() !== month) {
                     dayElement.classList.add('other-month');
                 }
                 if (dateStr === today) {
@@ -1779,25 +1775,24 @@
                 grid.appendChild(dayHeader);
             });
 
-            // date picker와 동일하게: 1일에서 getDay()만큼 빼서 일요일부터 시작
-            const firstDateObj = new Date(year, month, 1);
-            const firstDayOfWeek = firstDateObj.getDay();
-            const startDateObj = new Date(year, month, 1 - firstDayOfWeek);
-            const startDateStr = getKoreanDate(startDateObj);
+            // 날짜 계산 부분 교체
+            const firstDate = new Date(year, month, 1);
+            const firstDayOfWeek = firstDate.getDay();
+            const startDate = new Date(year, month, 1 - firstDayOfWeek);
 
-            const today = getKoreanDate();
+            const today = new Date().toISOString().split('T')[0];
             const selectedDate = document.getElementById('task-date').value;
 
             for (let i = 0; i < 42; i++) {
-                const loopDateObj = parseKoreanDate(startDateStr);
-                loopDateObj.setDate(loopDateObj.getDate() + i);
-                const dateStr = getKoreanDate(loopDateObj);
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                const dateStr = currentDate.toISOString().split('T')[0];
 
                 const dayElement = document.createElement('div');
                 dayElement.className = 'calendar-day';
-                dayElement.textContent = loopDateObj.getDate();
+                dayElement.textContent = currentDate.getDate();
 
-                if (loopDateObj.getMonth() !== month) {
+                if (currentDate.getMonth() !== month) {
                     dayElement.classList.add('other-month');
                 }
                 if (dateStr === today) {
@@ -2299,11 +2294,11 @@
 
         console.log('아이젠하워 매트릭스 애플리케이션이 초기화되었습니다.');
 
-        // 5. 초기화 시 한국 시간으로 설정 (기존 코드 교체)
+        // 5. 초기 날짜 설정 및 DOMContentLoaded 이벤트 리스너 교체
         document.addEventListener('DOMContentLoaded', function() {
-            const koreanToday = getKoreanDate();
-            document.getElementById('task-date').value = koreanToday;
-            console.log('한국 시간 기준 오늘 날짜 설정:', koreanToday);
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('task-date').value = today;
+            console.log('오늘 날짜 설정:', today);
         });
     </script>
 </body>
