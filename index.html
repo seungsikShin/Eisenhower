@@ -454,7 +454,7 @@
         }
 
         .calendar-day.today {
-            background: #4299e1;
+            background: #4299e1 !important;
             color: white;
         }
 
@@ -474,6 +474,7 @@
             bottom: 2px;
             right: 4px;
             font-size: 0.6rem;
+            color: #38a169;
         }
 
         .calendar-day.other-month {
@@ -798,7 +799,7 @@
         }
 
         .mini-day.today {
-            background: #4299e1;
+            background: #4299e1 !important;
             color: white;
             font-weight: bold;
         }
@@ -816,9 +817,10 @@
         .mini-day.has-data::after {
             content: '●';
             position: absolute;
-            bottom: 0;
-            right: 1px;
-            font-size: 0.4rem;
+            bottom: 2px;
+            right: 2px;
+            font-size: 0.6rem;
+            color: #38a169;
         }
 
         .mini-day.other-month {
@@ -1701,6 +1703,11 @@
 
         // 미니 캘린더 렌더링 (한국 시간 기준)
         function renderMiniCalendar() {
+            // 디버깅용 콘솔 로그 추가
+            console.log('현재 날짜:', new Date().toISOString().split('T')[0]);
+            console.log('선택된 날짜:', document.getElementById('task-date').value);
+            console.log('데이터가 있는 날짜들:', Array.from(datesWithData));
+
             const grid = document.getElementById('mini-calendar');
             const title = document.getElementById('overview-title');
             const year = currentOverviewDate.getFullYear();
@@ -1717,11 +1724,11 @@
                 grid.appendChild(dayHeader);
             });
 
-            // 날짜 계산 부분 교체
             const firstDate = new Date(year, month, 1);
             const firstDayOfWeek = firstDate.getDay();
             const startDate = new Date(year, month, 1 - firstDayOfWeek);
 
+            // 날짜 비교 로직 수정
             const today = new Date().toISOString().split('T')[0];
             const selectedDate = document.getElementById('task-date').value;
 
@@ -1775,11 +1782,11 @@
                 grid.appendChild(dayHeader);
             });
 
-            // 날짜 계산 부분 교체
             const firstDate = new Date(year, month, 1);
             const firstDayOfWeek = firstDate.getDay();
             const startDate = new Date(year, month, 1 - firstDayOfWeek);
 
+            // 날짜 비교 로직 수정
             const today = new Date().toISOString().split('T')[0];
             const selectedDate = document.getElementById('task-date').value;
 
