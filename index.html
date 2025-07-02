@@ -1459,8 +1459,15 @@
         // 드래그 앤 드롭 관련 변수
         let draggedTask = null;
 
-        // 오늘 날짜로 초기 설정
-        document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
+        // 1. 날짜 처리 함수 추가 (한국 시간 기준)
+        function getKoreanDate() {
+            const now = new Date();
+            const koreanTime = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
+            return koreanTime.toISOString().split('T')[0];
+        }
+
+        // 오늘 날짜로 초기 설정 (한국 시간 기준)
+        document.getElementById('task-date').value = getKoreanDate();
 
         // 인증 상태 변화 감지
         onAuthStateChanged(auth, (user) => {
@@ -1860,9 +1867,15 @@
             showMessage('업무가 삭제되었습니다.', 'success');
         };
 
+        // 3. renderTasks 함수 수정 (방어 코드 추가)
         function renderTasks(quadrant) {
             const taskList = document.getElementById(`tasks-${quadrant}`);
             taskList.innerHTML = '';
+
+            // 안전성 체크
+            if (!tasks[quadrant] || !Array.isArray(tasks[quadrant])) {
+                tasks[quadrant] = [];
+            }
 
             if (tasks[quadrant].length === 0) {
                 const emptyMessage = document.createElement('li');
@@ -1893,6 +1906,7 @@
             });
         }
 
+        // 4. saveTasks 함수 수정 (모든 사분면 저장)
         window.saveTasks = function() {
             if (!currentUser) {
                 showMessage('로그인이 필요합니다.', 'error');
@@ -1905,14 +1919,23 @@
                 return;
             }
 
+            // 모든 사분면을 포함하여 저장 (빈 배열도 포함)
+            const tasksToSave = {
+                1: tasks[1] || [],
+                2: tasks[2] || [],
+                3: tasks[3] || [],
+                4: tasks[4] || []
+            };
+
             const dataToSave = {
                 date: selectedDate,
-                tasks: tasks,
+                tasks: tasksToSave,
                 lastUpdated: new Date().toISOString(),
                 userId: userId
             };
 
-            // Firebase Realtime Database에 저장 (사용자별로 분리)
+            console.log('저장할 데이터:', dataToSave); // 디버깅용
+
             const taskRef = window.firebaseRef(window.firebaseDB, `eisenhower-tasks/${userId}/${selectedDate}`);
             window.firebaseSet(taskRef, dataToSave)
                 .then(() => {
@@ -1925,6 +1948,7 @@
                 });
         };
 
+        // 2. loadTasks 함수 수정 (누락된 사분면 처리)
         function loadTasks() {
             if (!currentUser) return;
             
@@ -1936,15 +1960,28 @@
                 .then((snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
-                        tasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
+                        // 모든 사분면을 빈 배열로 초기화
+                        tasks = { 1: [], 2: [], 3: [], 4: [] };
+                        // Firebase에서 불러온 데이터로 덮어쓰기 (누락된 사분면은 빈 배열 유지)
+                        if (data.tasks) {
+                            Object.keys(data.tasks).forEach(quadrant => {
+                                if (tasks[quadrant] !== undefined) {
+                                    tasks[quadrant] = data.tasks[quadrant] || [];
+                                }
+                            });
+                        }
+                        console.log('불러온 데이터:', tasks); // 디버깅용
                         showMessage('데이터를 불러왔습니다.', 'success');
                     } else {
+                        // 데이터가 없는 경우 모든 사분면을 빈 배열로 초기화
                         tasks = { 1: [], 2: [], 3: [], 4: [] };
+                        console.log('새로운 날짜 - 빈 데이터로 초기화');
                     }
                     renderAllTasks();
                 })
                 .catch((error) => {
                     console.error('Firebase 불러오기 실패:', error);
+                    // 에러 발생 시에도 안전하게 초기화
                     tasks = { 1: [], 2: [], 3: [], 4: [] };
                     renderAllTasks();
                 });
@@ -2139,7 +2176,16 @@
             e.currentTarget.classList.remove('drag-over');
         }
 
+        // 7. moveTask 함수 수정 (안전성 체크)
         function moveTask(fromQuadrant, toQuadrant, taskId) {
+            // 안전성 체크
+            if (!tasks[fromQuadrant] || !Array.isArray(tasks[fromQuadrant])) {
+                tasks[fromQuadrant] = [];
+            }
+            if (!tasks[toQuadrant] || !Array.isArray(tasks[toQuadrant])) {
+                tasks[toQuadrant] = [];
+            }
+
             const taskIndex = tasks[fromQuadrant].findIndex(t => t.id === taskId);
             if (taskIndex !== -1) {
                 const task = tasks[fromQuadrant][taskIndex];
@@ -2163,6 +2209,7 @@
             }
         }
 
+        // 5. updateTaskStats 함수 수정 (안전성 체크)
         function updateTaskStats() {
             const stats = {
                 total: 0,
@@ -2171,13 +2218,16 @@
             };
 
             Object.keys(tasks).forEach(quadrant => {
-                tasks[quadrant].forEach(task => {
-                    stats.total++;
-                    stats.byQuadrant[quadrant]++;
-                    if (task.completed) {
-                        stats.completed++;
-                    }
-                });
+                // 안전성 체크
+                if (tasks[quadrant] && Array.isArray(tasks[quadrant])) {
+                    tasks[quadrant].forEach(task => {
+                        stats.total++;
+                        stats.byQuadrant[quadrant]++;
+                        if (task.completed) {
+                            stats.completed++;
+                        }
+                    });
+                }
             });
 
             const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
