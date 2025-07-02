@@ -1459,11 +1459,11 @@
         // 드래그 앤 드롭 관련 변수
         let draggedTask = null;
 
-        // 1. 날짜 처리 함수 추가 (한국 시간 기준)
-        function getKoreanDate() {
-            const now = new Date();
-            const koreanTime = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
-            return koreanTime.toISOString().split('T')[0];
+        // 1. 날짜 처리 함수 (한국 시간 기준)
+        function getKoreanDate(date = new Date()) {
+            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+            const koreaTime = new Date(utc + (9 * 60 * 60 * 1000));
+            return koreaTime.toISOString().split('T')[0];
         }
 
         // 오늘 날짜로 초기 설정 (한국 시간 기준)
@@ -1696,18 +1696,16 @@
             renderCalendar();
         };
 
-        // 미니 캘린더 렌더링
+        // 미니 캘린더 렌더링 (한국 시간 기준)
         function renderMiniCalendar() {
             const grid = document.getElementById('mini-calendar');
             const title = document.getElementById('overview-title');
-            
             const year = currentOverviewDate.getFullYear();
             const month = currentOverviewDate.getMonth();
-            
+
             title.textContent = `${year}년 ${month + 1}월`;
-            
             grid.innerHTML = '';
-            
+
             const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
             dayHeaders.forEach(day => {
                 const dayHeader = document.createElement('div');
@@ -1715,23 +1713,23 @@
                 dayHeader.textContent = day;
                 grid.appendChild(dayHeader);
             });
-            
+
             const firstDay = new Date(year, month, 1);
             const startDate = new Date(firstDay);
             startDate.setDate(startDate.getDate() - firstDay.getDay());
-            
-            const today = new Date().toISOString().split('T')[0];
+
+            const today = getKoreanDate();
             const selectedDate = document.getElementById('task-date').value;
-            
+
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
-                
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = getKoreanDate(date);
+
                 const dayElement = document.createElement('div');
                 dayElement.className = 'mini-day';
                 dayElement.textContent = date.getDate();
-                
+
                 if (date.getMonth() !== month) {
                     dayElement.classList.add('other-month');
                 }
@@ -1744,28 +1742,27 @@
                 if (datesWithData.has(dateStr)) {
                     dayElement.classList.add('has-data');
                 }
-                
+
                 dayElement.addEventListener('click', () => {
                     document.getElementById('task-date').value = dateStr;
                     loadTasks();
+                    renderMiniCalendar(); // 선택 상태 업데이트
                 });
-                
+
                 grid.appendChild(dayElement);
             }
         }
 
-        // 캘린더 렌더링
+        // 캘린더 렌더링 (한국 시간 기준)
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             const title = document.getElementById('calendar-title');
-            
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
-            
+
             title.textContent = `${year}년 ${month + 1}월`;
-            
             grid.innerHTML = '';
-            
+
             const dayHeaders = ['일', '월', '화', '수', '목', '금', '토'];
             dayHeaders.forEach(day => {
                 const dayHeader = document.createElement('div');
@@ -1773,23 +1770,23 @@
                 dayHeader.textContent = day;
                 grid.appendChild(dayHeader);
             });
-            
+
             const firstDay = new Date(year, month, 1);
             const startDate = new Date(firstDay);
             startDate.setDate(startDate.getDate() - firstDay.getDay());
-            
-            const today = new Date().toISOString().split('T')[0];
+
+            const today = getKoreanDate();
             const selectedDate = document.getElementById('task-date').value;
-            
+
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
-                
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = getKoreanDate(date);
+
                 const dayElement = document.createElement('div');
                 dayElement.className = 'calendar-day';
                 dayElement.textContent = date.getDate();
-                
+
                 if (date.getMonth() !== month) {
                     dayElement.classList.add('other-month');
                 }
@@ -1802,13 +1799,13 @@
                 if (datesWithData.has(dateStr)) {
                     dayElement.classList.add('has-data');
                 }
-                
+
                 dayElement.addEventListener('click', () => {
                     document.getElementById('task-date').value = dateStr;
                     loadTasks();
                     toggleCalendar();
                 });
-                
+
                 grid.appendChild(dayElement);
             }
         }
@@ -2291,6 +2288,13 @@
         document.getElementById('task-date').addEventListener('change', loadTasks);
 
         console.log('아이젠하워 매트릭스 애플리케이션이 초기화되었습니다.');
+
+        // 5. 초기화 시 한국 시간으로 설정 (기존 코드 교체)
+        document.addEventListener('DOMContentLoaded', function() {
+            const koreanToday = getKoreanDate();
+            document.getElementById('task-date').value = koreanToday;
+            console.log('한국 시간 기준 오늘 날짜 설정:', koreanToday);
+        });
     </script>
 </body>
 </html>
