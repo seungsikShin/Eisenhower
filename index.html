@@ -1461,19 +1461,6 @@
         // 드래그 앤 드롭 관련 변수
         let draggedTask = null;
 
-        // 1. 날짜 처리 함수 (한국 시간 기준)
-        function getKoreanDate(date = new Date()) {
-            return date.toISOString().split('T')[0];
-        }
-
-        // 2. parseKoreanDate 함수 교체
-        function parseKoreanDate(dateStr) {
-            return new Date(dateStr + 'T00:00:00');
-        }
-
-        // 오늘 날짜로 초기 설정 (한국 시간 기준)
-        document.getElementById('task-date').value = getKoreanDate();
-
         // 인증 상태 변화 감지
         onAuthStateChanged(auth, (user) => {
             if (user) {
