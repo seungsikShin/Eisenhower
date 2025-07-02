@@ -1720,17 +1720,16 @@
                 grid.appendChild(dayHeader);
             });
 
-            // 안전하게 시작 날짜 계산 (문자열로)
-            let firstDateObj = new Date(year, month, 1);
-            let startDateObj = new Date(firstDateObj);
-            startDateObj.setDate(1 - firstDateObj.getDay());
-            let startDateStr = getKoreanDate(startDateObj);
+            // date picker와 동일하게: 1일에서 getDay()만큼 빼서 일요일부터 시작
+            const firstDateObj = new Date(year, month, 1);
+            const firstDayOfWeek = firstDateObj.getDay();
+            const startDateObj = new Date(year, month, 1 - firstDayOfWeek);
+            const startDateStr = getKoreanDate(startDateObj);
 
             const today = getKoreanDate();
             const selectedDate = document.getElementById('task-date').value;
 
             for (let i = 0; i < 42; i++) {
-                // 날짜 문자열을 직접 계산
                 const loopDateObj = parseKoreanDate(startDateStr);
                 loopDateObj.setDate(loopDateObj.getDate() + i);
                 const dateStr = getKoreanDate(loopDateObj);
@@ -1780,17 +1779,16 @@
                 grid.appendChild(dayHeader);
             });
 
-            // 안전하게 시작 날짜 계산 (문자열로)
-            let firstDateObj = new Date(year, month, 1);
-            let startDateObj = new Date(firstDateObj);
-            startDateObj.setDate(1 - firstDateObj.getDay());
-            let startDateStr = getKoreanDate(startDateObj);
+            // date picker와 동일하게: 1일에서 getDay()만큼 빼서 일요일부터 시작
+            const firstDateObj = new Date(year, month, 1);
+            const firstDayOfWeek = firstDateObj.getDay();
+            const startDateObj = new Date(year, month, 1 - firstDayOfWeek);
+            const startDateStr = getKoreanDate(startDateObj);
 
             const today = getKoreanDate();
             const selectedDate = document.getElementById('task-date').value;
 
             for (let i = 0; i < 42; i++) {
-                // 날짜 문자열을 직접 계산
                 const loopDateObj = parseKoreanDate(startDateStr);
                 loopDateObj.setDate(loopDateObj.getDate() + i);
                 const dateStr = getKoreanDate(loopDateObj);
