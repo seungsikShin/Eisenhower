@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업무 보드</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="loading-message">데이터를 불러오는 중입니다...</div>
+        
+        <!-- 업무 통계 -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <h3>총 업무</h3>
+                <span class="count">0건</span>
+            </div>
+            <div class="stat-card">
+                <h3>진행중</h3>
+                <span class="count">0건</span>
+            </div>
+            <div class="stat-card">
+                <h3>보고완료</h3>
+                <span class="count">0건</span>
+            </div>
+        </div>
+
+        <!-- 업무 목록 섹션 -->
+        <div class="work-list-section">
+            <h2>업무 목록</h2>
+            
+            <!-- 상태 필터 -->
+            <div class="status-filter">
+                <button class="filter-btn active">전체</button>
+                <button class="filter-btn">계획수립중</button>
+                <button class="filter-btn">자료수집중</button>
+                <button class="filter-btn">자료검토중</button>
+                <button class="filter-btn">보고서작성중</button>
+                <button class="filter-btn">보고대기중</button>
+                <button class="filter-btn">보고완료</button>
+            </div>
+
+            <!-- 액션 버튼 -->
+            <div class="action-buttons">
+                <button class="btn-csv">CSV</button>
+                <button class="btn-new">신규 등록</button>
+            </div>
+
+            <!-- 테이블 헤더 -->
+            <div class="table-header">
+                <div class="header-item">업무 분류</div>
+                <div class="header-item">업무명</div>
+                <div class="header-item">대상 부서</div>
+                <div class="header-item">감사 기간</div>
+                <div class="header-item">진행 상태</div>
+                <div class="header-item">관리</div>
+            </div>
+
+            <!-- 검색 결과 -->
+            <div class="no-results">검색 결과가 없습니다.</div>
+        </div>
+
+        <!-- 업무 등록 폼 -->
+        <div class="work-form" id="workForm" style="display: none;">
+            <h3>업무 등록</h3>
+            
+            <div class="form-group">
+                <label>업무 분류</label>
+                <select class="form-select">
+                    <option>일상감사</option>
+                    <option>특별감사</option>
+                    <option>특정감사</option>
+                    <option>정기감사</option>
+                    <option>기타</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>진행 상태</label>
+                <select class="form-select">
+                    <option>계획수립중</option>
+                    <option>자료수집중</option>
+                    <option>자료검토중</option>
+                    <option>보고서작성중</option>
+                    <option>보고대기중</option>
+                    <option>보고완료</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>업무명</label>
+                <input type="text" class="form-input" placeholder="업무명을 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>대상 부서</label>
+                <input type="text" class="form-input" placeholder="대상 부서를 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>시작일자</label>
+                <input type="date" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>종료일자</label>
+                <input type="date" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>주요 지적사항</label>
+                <textarea class="form-textarea" placeholder="주요 지적사항을 입력하세요"></textarea>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-cancel">취소</button>
+                <button class="btn-save">저장</button>
+            </div>
+        </div>
+
+        <!-- 업무 상세 모달 -->
+        <div class="modal" id="detailModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>업무 상세 현황</h3>
+                    <button class="close-btn">&times;</button>
+                </div>
+                
+                <div class="modal-tabs">
+                    <button class="tab-btn active">상세 정보</button>
+                    <button class="tab-btn">댓글</button>
+                    <button class="tab-btn">업무 이력</button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- 상세 정보 내용 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 삭제 확인 모달 -->
+        <div class="confirm-modal" id="confirmModal" style="display: none;">
+            <div class="confirm-content">
+                <h3>정말로 삭제하시겠습니까?</h3>
+                <p>이 작업은 되돌릴 수 없습니다.</p>
+                <div class="confirm-buttons">
+                    <button class="btn-cancel">취소</button>
+                    <button class="btn-delete">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
