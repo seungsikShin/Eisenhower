@@ -805,7 +805,7 @@ function loadSharedCalendarEvents() {
     });
 }
 
-// 메인 캘린더 렌더링
+// 메인 캘린더 렌더링 (한국 시간 기준으로 수정)
 function renderMainCalendar() {
     const year = currentMainCalendarDate.getFullYear();
     const month = currentMainCalendarDate.getMonth();
@@ -816,12 +816,12 @@ function renderMainCalendar() {
     const daysContainer = document.getElementById('calendar-days');
     daysContainer.innerHTML = '';
     
-    // 첫째 날과 마지막 날 계산
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    // 첫째 날 계산 (한국 시간 기준)
+    const firstDate = new Date(year, month, 1);
+    const firstDayOfWeek = firstDate.getDay();
+    const startDate = new Date(year, month, 1 - firstDayOfWeek);
     
+    // 오늘 날짜 (한국 시간 기준)
     const today = new Date().toISOString().split('T')[0];
     
     // 42개 날짜 생성 (6주)
@@ -829,7 +829,12 @@ function renderMainCalendar() {
         const currentDate = new Date(startDate);
         currentDate.setDate(startDate.getDate() + i);
         
-        const dateStr = currentDate.toISOString().split('T')[0];
+        // 날짜 문자열 생성 (YYYY-MM-DD 형식)
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         
@@ -840,7 +845,7 @@ function renderMainCalendar() {
         dayElement.appendChild(dayNumber);
         
         // 다른 달 날짜 스타일
-        if (currentDate.getMonth() !== month) {
+        if (currentDate.getMonth() !== currentMainCalendarDate.getMonth()) {
             dayElement.classList.add('other-month');
         }
         
