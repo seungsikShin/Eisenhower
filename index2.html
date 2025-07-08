@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이젠하워 매트릭스 - 일일 업무 관리</title>
+    <link rel="stylesheet" href="css/eisenhower.css">
+</head>
+<body>
+    <!-- 로그인/회원가입 화면 -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">🎯</div>
+            <h1 class="auth-title">업무 매트릭스</h1>
+            <p class="auth-subtitle">효율적인 업무 관리의 시작</p>
+            
+            <div id="auth-message"></div>
+            
+            <!-- 로그인 폼 -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <input type="email" id="login-email" class="form-input" placeholder="이메일을 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" class="form-input" placeholder="비밀번호를 입력하세요" required>
+                </div>
+                <button type="submit" id="login-btn" class="auth-btn">
+                    <span class="btn-text">로그인</span>
+                </button>
+            </form>
+            
+            <!-- 회원가입 폼 -->
+            <form id="signup-form" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <input type="email" id="signup-email" class="form-input" placeholder="이메일을 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signup-password" class="form-input" placeholder="비밀번호를 입력하세요 (6자 이상)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signup-confirm" class="form-input" placeholder="비밀번호를 다시 입력하세요" required minlength="6">
+                </div>
+                <button type="submit" id="signup-btn" class="auth-btn">
+                    <span class="btn-text">회원가입</span>
+                </button>
+            </form>
+            
+            <div class="auth-switch">
+                <p id="switch-text" class="auth-switch-text">계정이 없으신가요?</p>
+                <button type="button" id="switch-btn" class="auth-switch-btn">회원가입</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 애플리케이션 화면 -->
+    <div id="main-app" class="main-app">
+        <div class="container">
+            <div class="header">
+                <div class="user-info">
+                    <span id="user-email" class="user-email"></span>
+                    <button id="logout-btn" class="logout-btn" onclick="logout()">로그아웃</button>
+                </div>
+                <h1 class="main-title">업무 우선순위 매트릭스</h1>
+                <p class="subtitle">— 효율적인 일정 관리를 위한 도구</p>
+            </div>
+
+            <div class="feature-cards">
+                <!-- 캘린더 오버뷰 -->
+                <div class="calendar-overview">
+                    <div class="calendar-overview-header">
+                        <h3 id="overview-title">2025년 6월</h3>
+                        <div class="calendar-nav">
+                            <button class="nav-btn small" onclick="changeOverviewMonth(-1)">‹</button>
+                            <button class="nav-btn small" onclick="changeOverviewMonth(1)">›</button>
+                        </div>
+                    </div>
+                    <div class="mini-calendar" id="mini-calendar">
+                        <!-- 미니 캘린더가 여기에 생성됩니다 -->
+                    </div>
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot has-data"></div>
+                            <span>업무 있음</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot selected"></div>
+                            <span>선택된 날짜</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot today"></div>
+                            <span>오늘</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 통계 카드 -->
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <h3>📊 오늘의 업무 통계</h3>
+                    </div>
+                    <div class="stats-content">
+                        <div class="progress-ring">
+                            <svg class="progress-svg" width="80" height="80">
+                                <circle class="progress-bg" cx="40" cy="40" r="35"></circle>
+                                <circle class="progress-bar" cx="40" cy="40" r="35" id="progress-circle"></circle>
+                            </svg>
+                            <div class="progress-text" id="progress-text">0%</div>
+                        </div>
+                        <div class="stats-details">
+                            <div class="stat-item">
+                                <span class="stat-label">전체 업무</span>
+                                <span class="stat-value" id="total-tasks">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">완료</span>
+                                <span class="stat-value completed" id="completed-tasks">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">진행 중</span>
+                                <span class="stat-value pending" id="pending-tasks">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 사분면별 현황 -->
+                <div class="quadrant-stats">
+                    <div class="stats-header">
+                        <h3>🎯 사분면별 현황</h3>
+                    </div>
+                    <div class="quadrant-breakdown">
+                        <div class="breakdown-item q1">
+                            <div class="breakdown-icon">🚨</div>
+                            <div class="breakdown-info">
+                                <span class="breakdown-label">긴급+중요</span>
+                                <span class="breakdown-count" id="q1-count">0</span>
+                            </div>
+                        </div>
+                        <div class="breakdown-item q2">
+                            <div class="breakdown-icon">📋</div>
+                            <div class="breakdown-info">
+                                <span class="breakdown-label">중요</span>
+                                <span class="breakdown-count" id="q2-count">0</span>
+                            </div>
+                        </div>
+                        <div class="breakdown-item q3">
+                            <div class="breakdown-icon">🤝</div>
+                            <div class="breakdown-info">
+                                <span class="breakdown-label">긴급</span>
+                                <span class="breakdown-count" id="q3-count">0</span>
+                            </div>
+                        </div>
+                        <div class="breakdown-item q4">
+                            <div class="breakdown-icon">🗑️</div>
+                            <div class="breakdown-info">
+                                <span class="breakdown-label">제거 대상</span>
+                                <span class="breakdown-count" id="q4-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 컨트롤 패널 -->
+            <div class="controls">
+                <div class="search-container">
+                    <input type="text" id="search-tasks" class="search-input" placeholder="모든 날짜에서 업무 검색...">
+                    <button class="search-btn" onclick="searchTasks()">검색</button>
+                </div>
+                <button class="calendar-btn" onclick="toggleCalendar()">📅 캘린더</button>
+                <div class="date-container">
+                    <input type="date" id="task-date" class="date-input">
+                </div>
+                <button class="save-btn" onclick="saveTasks()">💾 저장하기</button>
+            </div>
+
+            <!-- 캘린더 모달 -->
+            <div id="calendar-modal" class="calendar-modal">
+                <div class="calendar-content">
+                    <div class="calendar-header">
+                        <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                        <h3 id="calendar-title">2025년 6월</h3>
+                        <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                        <button class="close-btn" onclick="toggleCalendar()">✕</button>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- 캘린더 날짜들이 여기에 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 검색 결과 모달 -->
+            <div id="search-modal" class="search-modal">
+                <div class="search-content">
+                    <div class="search-header">
+                        <h3>검색 결과</h3>
+                        <button class="close-btn" onclick="toggleSearchModal()">✕</button>
+                    </div>
+                    <div id="search-results" class="search-results">
+                        <!-- 검색 결과가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4사분면 매트릭스 -->
+            <div class="matrix-grid">
+                <!-- 1사분면: 중요하고 긴급한 일 -->
+                <div class="quadrant quadrant-1" data-quadrant="1">
+                    <div class="quadrant-header">
+                        <span class="quadrant-emoji">🚨</span>
+                        <div class="quadrant-title">DO (즉시 실행)</div>
+                        <div class="quadrant-subtitle">중요하고 긴급한 일</div>
+                    </div>
+                    <div class="task-input-container">
+                        <input type="text" class="task-input" placeholder="위기 상황이나 마감 임박한 중요 업무를 입력하세요..." onkeypress="handleTaskInput(event, 1)">
+                    </div>
+                    <button class="add-task-btn" onclick="addTask(1)">+ 긴급 중요 업무 추가</button>
+                    <ul class="task-list" id="tasks-1"></ul>
+                </div>
+
+                <!-- 2사분면: 중요하지만 긴급하지 않은 일 -->
+                <div class="quadrant quadrant-2" data-quadrant="2">
+                    <div class="quadrant-header">
+                        <span class="quadrant-emoji">📋</span>
+                        <div class="quadrant-title">PLAN (계획 수립)</div>
+                        <div class="quadrant-subtitle">중요하지만 긴급하지 않은 일</div>
+                    </div>
+                    <div class="task-input-container">
+                        <input type="text" class="task-input" placeholder="장기 목표나 개발을 위한 중요한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 2)">
+                    </div>
+                    <button class="add-task-btn" onclick="addTask(2)">+ 전략적 업무 추가</button>
+                    <ul class="task-list" id="tasks-2"></ul>
+                </div>
+
+                <!-- 3사분면: 긴급하지만 중요하지 않은 일 -->
+                <div class="quadrant quadrant-3" data-quadrant="3">
+                    <div class="quadrant-header">
+                        <span class="quadrant-emoji">🤝</span>
+                        <div class="quadrant-title">DELEGATE (위임)</div>
+                        <div class="quadrant-subtitle">긴급하지만 중요하지 않은 일</div>
+                    </div>
+                    <div class="task-input-container">
+                        <input type="text" class="task-input" placeholder="다른 사람에게 맡길 수 있는 급한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 3)">
+                    </div>
+                    <button class="add-task-btn" onclick="addTask(3)">+ 위임 가능 업무 추가</button>
+                    <ul class="task-list" id="tasks-3"></ul>
+                </div>
+
+                <!-- 4사분면: 중요하지도 긴급하지도 않은 일 -->
+                <div class="quadrant quadrant-4" data-quadrant="4">
+                    <div class="quadrant-header">
+                        <span class="quadrant-emoji">🗑️</span>
+                        <div class="quadrant-title">DELETE (제거)</div>
+                        <div class="quadrant-subtitle">중요하지도 긴급하지도 않은 일</div>
+                    </div>
+                    <div class="task-input-container">
+                        <input type="text" class="task-input" placeholder="제거하거나 최소화할 수 있는 업무를 입력하세요..." onkeypress="handleTaskInput(event, 4)">
+                    </div>
+                    <button class="add-task-btn" onclick="addTask(4)">+ 제거 대상 업무 추가</button>
+                    <ul class="task-list" id="tasks-4"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 캐릭터 및 상태 메시지 -->
+    <div class="cute-character" onclick="showTip()">🎯</div>
+    <div id="status-message" class="status-message"></div>
+
+    <!-- JavaScript 파일들 -->
+    <script src="js/eisenhower.js"></script>
+</body>
+</html>
