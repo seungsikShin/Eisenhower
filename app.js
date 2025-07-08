@@ -822,7 +822,9 @@ function renderMainCalendar() {
     const startDate = new Date(year, month, 1 - firstDayOfWeek);
     
     // 오늘 날짜 (한국 시간 기준)
-    const today = new Date().toISOString().split('T')[0];
+    const koreaToday = new Date();
+    koreaToday.setHours(koreaToday.getHours() + 9); // UTC+9 (한국 시간)
+    const today = koreaToday.toISOString().split('T')[0];
     
     // 42개 날짜 생성 (6주)
     for (let i = 0; i < 42; i++) {
@@ -912,7 +914,7 @@ window.goToToday = function() {
     renderMainCalendar();
 };
 
-// 이벤트 폼 표시
+// 이벤트 폼 표시 (한국 시간 기준으로 수정)
 window.showEventForm = function(selectedDate = null) {
     const modal = document.getElementById('event-modal');
     const form = document.getElementById('event-form');
@@ -929,8 +931,10 @@ window.showEventForm = function(selectedDate = null) {
         document.getElementById('event-start-date').value = selectedDate;
         document.getElementById('event-end-date').value = selectedDate;
     } else {
-        // 오늘 날짜로 기본 설정
-        const today = new Date().toISOString().split('T')[0];
+        // 한국 시간 기준 오늘 날짜로 기본 설정
+        const koreaToday = new Date();
+        koreaToday.setHours(koreaToday.getHours() + 9); // UTC+9 (한국 시간)
+        const today = koreaToday.toISOString().split('T')[0];
         document.getElementById('event-start-date').value = today;
         document.getElementById('event-end-date').value = today;
     }
@@ -1030,12 +1034,14 @@ window.deleteEvent = function() {
         });
 };
 
-// 캘린더 통계 업데이트
+// 캘린더 통계 업데이트 (한국 시간 기준으로 수정)
 function updateCalendarStats() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const today = now.toISOString().split('T')[0];
+    // 한국 시간 기준 오늘 날짜
+    const koreaToday = new Date();
+    koreaToday.setHours(koreaToday.getHours() + 9); // UTC+9 (한국 시간)
+    const currentMonth = koreaToday.getMonth();
+    const currentYear = koreaToday.getFullYear();
+    const today = koreaToday.toISOString().split('T')[0];
     
     // 이번 달 일정 개수
     const monthEvents = sharedCalendarEvents.filter(event => {
