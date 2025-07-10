@@ -391,6 +391,103 @@ body {
     box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
+/* 필터링 컨트롤 */
+.calendar-filters {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    transition: all 0.3s ease;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 140px;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 2px;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.85rem;
+    color: #374151;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.filter-select:hover {
+    border-color: #9ca3af;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-left: auto;
+}
+
+.btn-filter-reset, .btn-filter-toggle {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-filter-reset {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-filter-reset:hover {
+    background: #cbd5e0;
+}
+
+.btn-filter-toggle {
+    background: #3182ce;
+    color: white;
+}
+
+.btn-filter-toggle:hover {
+    background: #2c5aa0;
+}
+
+.calendar-filters.collapsed {
+    height: 60px;
+    overflow: hidden;
+}
+
+.calendar-filters.collapsed .filter-group {
+    display: none;
+}
+
+.calendar-filters.collapsed .filter-actions {
+    margin-left: 0;
+}
+
 /* 색상 범례 */
 .color-legend {
     display: flex;
@@ -485,9 +582,10 @@ body {
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    border-color: #374151;
-    box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.1);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    border-color: #111827;
+    box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.3);
+    color: #ffffff;
 }
 
 .calendar-day.other-month {
@@ -509,8 +607,19 @@ body {
 }
 
 .calendar-day.today .day-number {
-    color: #111827;
+    color: #ffffff;
     font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.calendar-day.today .day-event {
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.calendar-day.today .day-event:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
 }
 
 .calendar-day.other-month .day-number {
@@ -1192,7 +1301,7 @@ body {
     gap: 8px;
 }
 
-.btn-import, .btn-edit, .btn-delete {
+.btn-comment, .btn-import, .btn-edit, .btn-delete {
     padding: 6px 12px;
     border: none;
     border-radius: 6px;
@@ -1200,6 +1309,11 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 500;
+}
+
+.btn-comment {
+    background: #3b82f6;
+    color: white;
 }
 
 .btn-import {
@@ -1217,8 +1331,227 @@ body {
     color: white;
 }
 
-.btn-import:hover, .btn-edit:hover, .btn-delete:hover {
+.btn-comment:hover, .btn-import:hover, .btn-edit:hover, .btn-delete:hover {
     transform: scale(1.05);
+}
+
+/* 댓글 모달 스타일 */
+.comment-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.comment-modal.show {
+    display: flex;
+}
+
+.comment-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e5e7eb;
+}
+
+.comment-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.comment-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.comment-modal-body {
+    padding: 25px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.comments-list {
+    margin-bottom: 25px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.comment-item {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-left: 3px solid #3182ce;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.comment-time {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.comment-content {
+    color: #4b5563;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.no-comments {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+.comment-form {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+    margin-bottom: 25px;
+}
+
+.comment-input-container {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+}
+
+.comment-textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #374151;
+    line-height: 1.5;
+    outline: none;
+}
+
+.comment-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.btn-comment-submit {
+    background: #3182ce;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-comment-submit:hover {
+    background: #2c5aa0;
+    transform: translateY(-1px);
+}
+
+.btn-comment-submit:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.work-history-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+}
+
+.work-history-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.history-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.history-item {
+    background: #fff7ed;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 3px solid #f59e0b;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.history-action {
+    font-weight: 600;
+    color: #92400e;
+    font-size: 0.85rem;
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: #78716c;
+}
+
+.history-details {
+    font-size: 0.8rem;
+    color: #57534e;
+}
+
+.history-change {
+    background: #fef3c7;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px;
+    display: inline-block;
+}
+
+.no-history {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 20px;
 }
 
 /* ===== 업무 등록 폼 ===== */
