@@ -3970,3 +3970,38 @@ body, .gowun-batang-regular {
   color: #2d3748;
   font-weight: 400;
 }
+
+/* ===== 업무 카운트 메뉴 세로 배치 ===== */
+.stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: stretch;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+  padding: 18px 0 12px 0;
+  text-align: center;
+}
+.stat-card h3 {
+  margin-bottom: 6px;
+}
+.stat-card .count {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+/* ===== 업무 테이블, 색상 범례 폰트 진하게 ===== */
+.work-table th, .work-table td {
+  color: #222;
+  font-weight: 600;
+}
+.color-legend, .color-legend .legend-item {
+  color: #222 !important;
+  font-weight: 600 !important;
+}
