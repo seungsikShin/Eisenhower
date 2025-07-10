@@ -1263,30 +1263,91 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    table-layout: fixed;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .work-table th,
 .work-table td {
-    padding: 15px;
-    text-align: left;
+    padding: 12px 8px;
+    text-align: center;
     border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    word-wrap: break-word;
+    line-height: 1.4;
+    font-size: 13px;
 }
 
 .work-table th {
-    background: #f9fafb;
+    background: #f8f9fa;
     font-weight: 600;
-    color: #6b7280;
+    color: #374151;
+    font-size: 12px;
+    height: 45px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.work-table td {
+    height: 55px;
+    color: #4a5568;
 }
 
 .work-table tr:hover {
     background: #f9fafb;
+    transition: background-color 0.2s ease;
+}
+
+/* 컬럼별 너비와 정렬 설정 */
+.work-table th:nth-child(1), .work-table td:nth-child(1) { 
+    width: 10%; 
+    font-size: 11px;
+}
+
+.work-table th:nth-child(2), .work-table td:nth-child(2) { 
+    width: 28%; 
+    text-align: left; 
+    padding-left: 12px;
+    font-weight: 500;
+}
+
+.work-table th:nth-child(3), .work-table td:nth-child(3) { 
+    width: 12%; 
+    font-size: 12px;
+}
+
+.work-table th:nth-child(4), .work-table td:nth-child(4) { 
+    width: 14%; 
+    font-size: 11px;
+}
+
+.work-table th:nth-child(5), .work-table td:nth-child(5) { 
+    width: 10%; 
+}
+
+.work-table th:nth-child(6), .work-table td:nth-child(6) { 
+    width: 12%; 
+    font-size: 12px;
+}
+
+.work-table th:nth-child(7), .work-table td:nth-child(7) { 
+    width: 14%; 
 }
 
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
     font-weight: 600;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .status-planning { background: #fef3c7; color: #92400e; }
@@ -1298,17 +1359,23 @@ body {
 
 .action-btns {
     display: flex;
-    gap: 8px;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .btn-comment, .btn-import, .btn-edit, .btn-delete {
-    padding: 6px 12px;
+    padding: 5px 8px;
     border: none;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    border-radius: 4px;
+    font-size: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: 500;
+    min-width: 45px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .btn-comment {
@@ -1322,7 +1389,7 @@ body {
 }
 
 .btn-edit {
-    background: #6b7280;
+    background: #10b981;
     color: white;
 }
 
@@ -1332,7 +1399,8 @@ body {
 }
 
 .btn-comment:hover, .btn-import:hover, .btn-edit:hover, .btn-delete:hover {
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 댓글 모달 스타일 */
@@ -2708,8 +2776,42 @@ body {
 
     .work-table th,
     .work-table td {
-        padding: 8px 5px;
-        font-size: 0.8rem;
+        padding: 6px 3px;
+        font-size: 9px;
+        height: auto;
+        min-height: 35px;
+        line-height: 1.2;
+    }
+    
+    .work-table th {
+        height: 30px;
+        font-size: 8px;
+    }
+    
+    /* 초소형 화면에서 컬럼 너비 최적화 */
+    .work-table th:nth-child(1), .work-table td:nth-child(1) { width: 6%; }
+    .work-table th:nth-child(2), .work-table td:nth-child(2) { 
+        width: 35%; 
+        padding-left: 6px;
+    }
+    .work-table th:nth-child(3), .work-table td:nth-child(3) { width: 8%; }
+    .work-table th:nth-child(4), .work-table td:nth-child(4) { width: 10%; }
+    .work-table th:nth-child(5), .work-table td:nth-child(5) { width: 6%; }
+    .work-table th:nth-child(6), .work-table td:nth-child(6) { width: 8%; }
+    .work-table th:nth-child(7), .work-table td:nth-child(7) { width: 27%; }
+    
+    .action-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        width: 100%;
+    }
+    
+    .btn-comment, .btn-import, .btn-edit, .btn-delete {
+        padding: 2px 4px;
+        font-size: 8px;
+        min-width: 30px;
+        width: 100%;
     }
 }
 
@@ -2796,16 +2898,20 @@ textarea:focus {
 /* ===== 업무명 클릭 가능 스타일 ===== */
 .work-name-clickable {
     cursor: pointer;
-    color: #667eea;
+    color: #2563eb;
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s ease;
-    padding: 2px 0;
+    padding: 4px 2px;
+    display: inline-block;
+    font-weight: 500;
+    border-radius: 3px;
 }
 
 .work-name-clickable:hover {
-    color: #764ba2;
-    border-bottom-color: #764ba2;
+    color: #1d4ed8;
+    background-color: #eff6ff;
+    border-bottom-color: #2563eb;
     transform: translateY(-1px);
 }
 
@@ -3110,19 +3216,47 @@ textarea:focus {
     
     /* 테이블 반응형 개선 */
     .work-table {
-        font-size: 12px;
+        font-size: 11px;
     }
+    
+    .work-table th, .work-table td {
+        padding: 8px 4px;
+        height: auto;
+        min-height: 40px;
+    }
+    
+    .work-table th {
+        font-size: 10px;
+        height: 35px;
+    }
+    
+    .work-table td {
+        font-size: 10px;
+        line-height: 1.3;
+    }
+    
+    /* 모바일에서 컬럼 너비 재조정 */
+    .work-table th:nth-child(1), .work-table td:nth-child(1) { width: 8%; }
+    .work-table th:nth-child(2), .work-table td:nth-child(2) { width: 30%; }
+    .work-table th:nth-child(3), .work-table td:nth-child(3) { width: 10%; }
+    .work-table th:nth-child(4), .work-table td:nth-child(4) { width: 12%; }
+    .work-table th:nth-child(5), .work-table td:nth-child(5) { width: 8%; }
+    .work-table th:nth-child(6), .work-table td:nth-child(6) { width: 10%; }
+    .work-table th:nth-child(7), .work-table td:nth-child(7) { width: 22%; }
     
     .action-btns {
         display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
+        flex-direction: column;
+        gap: 2px;
+        align-items: center;
     }
     
     .btn-comment, .btn-import, .btn-edit, .btn-delete {
-        padding: 4px 8px;
-        font-size: 10px;
-        min-width: auto;
+        padding: 3px 6px;
+        font-size: 9px;
+        min-width: 50px;
+        width: 100%;
+        max-width: 70px;
     }
 }
 
@@ -3152,9 +3286,94 @@ textarea:focus {
     /* 테이블 스크롤 */
     .work-table-container {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .work-table {
-        min-width: 800px;
+        min-width: 700px;
+        margin: 0;
+    }
+}
+
+/* ===== 테이블 추가 개선 스타일 ===== */
+.work-table-container {
+    margin-top: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.work-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.work-table tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.work-table tbody tr:nth-child(odd) {
+    background-color: white;
+}
+
+.work-table tbody tr:hover {
+    background-color: #f0f9ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 상태별 배지 색상 개선 */
+.status-planning { 
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
+    color: #92400e; 
+    border: 1px solid #f59e0b;
+}
+
+.status-collecting { 
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); 
+    color: #1e40af; 
+    border: 1px solid #3b82f6;
+}
+
+.status-reviewing { 
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); 
+    color: #3730a3; 
+    border: 1px solid #6366f1;
+}
+
+.status-writing { 
+    background: linear-gradient(135deg, #fed7d7 0%, #fecaca 100%); 
+    color: #c53030; 
+    border: 1px solid #ef4444;
+}
+
+.status-waiting { 
+    background: linear-gradient(135deg, #f0fff4 0%, #dcfce7 100%); 
+    color: #22543d; 
+    border: 1px solid #22c55e;
+}
+
+.status-completed { 
+    background: linear-gradient(135deg, #d1fae5 0%, #bbf7d0 100%); 
+    color: #065f46; 
+    border: 1px solid #10b981;
+}
+
+/* 모바일에서 상태 배지 크기 조정 */
+@media (max-width: 768px) {
+    .status-badge {
+        font-size: 9px;
+        padding: 3px 6px;
+        min-width: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-badge {
+        font-size: 8px;
+        padding: 2px 4px;
+        min-width: 40px;
     }
 }
