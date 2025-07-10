@@ -32,6 +32,9 @@
             <!-- 회원가입 폼 -->
             <form id="signup-form" class="auth-form" style="display: none;">
                 <div class="form-group">
+                    <input type="text" id="signup-name" class="form-input" placeholder="이름을 입력하세요" required>
+                </div>
+                <div class="form-group">
                     <input type="email" id="signup-email" class="form-input" placeholder="이메일을 입력하세요" required>
                 </div>
                 <div class="form-group">
@@ -68,7 +71,7 @@
                         <button class="nav-tab" onclick="switchView('matrix')">🎯 내 매트릭스</button>
                     </div>
                     <div class="user-info">
-                        <span id="user-email" class="user-email"></span>
+                        <span id="user-name" class="user-email"></span>
                         <button id="logout-btn" class="logout-btn" onclick="logout()">로그아웃</button>
                     </div>
                 </div>
