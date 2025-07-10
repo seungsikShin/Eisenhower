@@ -252,6 +252,47 @@
                         </div>
                     </div>
 
+                    <!-- 필터링 컨트롤 -->
+                    <div class="calendar-filters">
+                        <div class="filter-group">
+                            <label for="creator-filter">등록자별</label>
+                            <select id="creator-filter" class="filter-select" onchange="applyCalendarFilters()">
+                                <option value="">모든 등록자</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="type-filter">일정 유형</label>
+                            <select id="type-filter" class="filter-select" onchange="applyCalendarFilters()">
+                                <option value="">모든 유형</option>
+                                <option value="업무">업무일정</option>
+                                <option value="연차">연차</option>
+                                <option value="휴가">휴가</option>
+                                <option value="회식">회식</option>
+                                <option value="교육">교육/세미나</option>
+                                <option value="출장">출장</option>
+                                <option value="개인">개인일정</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="date-filter">날짜 범위</label>
+                            <select id="date-filter" class="filter-select" onchange="applyCalendarFilters()">
+                                <option value="">전체 기간</option>
+                                <option value="today">오늘</option>
+                                <option value="this-week">이번 주</option>
+                                <option value="this-month">이번 달</option>
+                                <option value="next-week">다음 주</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-actions">
+                            <button class="btn-filter-reset" onclick="resetCalendarFilters()">🔄 초기화</button>
+                            <button class="btn-filter-toggle" onclick="toggleFilterPanel()">🔽 필터</button>
+                        </div>
+                    </div>
+
                     <!-- 색상 범례 -->
                     <div class="color-legend">
                         <div class="legend-item">
@@ -636,6 +677,41 @@
                 <div class="event-detail-actions">
                     <button class="btn-edit-event" onclick="editEvent()">✏️ 수정</button>
                     <button class="btn-delete-event" onclick="deleteEvent()">🗑️ 삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 댓글 모달 -->
+    <div id="comment-modal" class="comment-modal">
+        <div class="comment-modal-content">
+            <div class="comment-modal-header">
+                <h3 id="comment-work-title">업무명 - 댓글</h3>
+                <button class="close-btn" onclick="hideCommentModal()">✕</button>
+            </div>
+            
+            <div class="comment-modal-body">
+                <!-- 댓글 목록 -->
+                <div class="comments-list" id="comments-list">
+                    <div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!</div>
+                </div>
+                
+                <!-- 댓글 작성 -->
+                <div class="comment-form">
+                    <div class="comment-input-container">
+                        <textarea id="comment-input" class="comment-textarea" placeholder="댓글을 입력하세요..." rows="3"></textarea>
+                        <div class="comment-actions">
+                            <button class="btn-comment-submit" onclick="addComment()">댓글 등록</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 변경 이력 -->
+                <div class="work-history-section">
+                    <h4>📋 업무 변경 이력</h4>
+                    <div class="history-list" id="work-history-list">
+                        <div class="no-history">아직 변경 이력이 없습니다.</div>
+                    </div>
                 </div>
             </div>
         </div>
