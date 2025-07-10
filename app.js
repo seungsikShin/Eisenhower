@@ -2231,14 +2231,14 @@ function initCategoryChart() {
             datasets: [{
                 data: [0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#3b82f6',  // 파랑
-                    '#10b981',  // 초록
-                    '#f59e0b',  // 주황
-                    '#ef4444',  // 빨강
-                    '#8b5cf6'   // 보라
+                    '#5b9df9',  // 파스텔 블루
+                    '#6ee7b7',  // 파스텔 그린
+                    '#fbbf24',  // 파스텔 오렌지
+                    '#fda4af',  // 파스텔 핑크
+                    '#a78bfa'   // 파스텔 퍼플
                 ],
                 borderWidth: 2,
-                borderColor: '#ffffff'
+                borderColor: '#fff'
             }]
         },
         options: {
@@ -2282,12 +2282,12 @@ function initStatusChart() {
                 label: '업무 수',
                 data: [0, 0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#fbbf24',  // 노랑
-                    '#3b82f6',  // 파랑  
-                    '#8b5cf6',  // 보라
-                    '#f59e0b',  // 주황
-                    '#06b6d4',  // 청록
-                    '#10b981'   // 초록
+                    '#5b9df9',  // 파스텔 블루
+                    '#fbbf24',  // 파스텔 오렌지
+                    '#a78bfa',  // 파스텔 퍼플
+                    '#6ee7b7',  // 파스텔 그린
+                    '#fda4af',  // 파스텔 핑크
+                    '#67e8f9'   // 파스텔 시안
                 ],
                 borderRadius: 6,
                 borderSkipped: false,
@@ -2354,12 +2354,12 @@ function initMonthlyChart() {
             datasets: [{
                 label: '등록된 업무',
                 data: [0, 0, 0, 0, 0, 0],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: '#5b9df9',
+                backgroundColor: 'rgba(91,157,249,0.12)',
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#ffffff',
+                pointBackgroundColor: '#5b9df9',
+                pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 5,
                 pointHoverRadius: 7
