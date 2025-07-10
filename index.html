@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>통합 감사업무 매트릭스 시스템</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- 로그인/회원가입 화면 -->
@@ -96,6 +97,43 @@
                     <div class="stat-card">
                         <h3>👥 내 업무</h3>
                         <span class="count" id="my-work-count">0</span>
+                    </div>
+                </div>
+
+                <!-- 차트 섹션 -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>📊 업무 분류별 현황</h3>
+                                <p>감사 유형별 업무 분포</p>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="categoryChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>📈 진행 상태별 현황</h3>
+                                <p>업무 진행률 현황</p>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="statusChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-card wide">
+                            <div class="chart-header">
+                                <h3>📅 월별 업무 추이</h3>
+                                <p>최근 6개월 업무 등록 현황</p>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="monthlyChart" width="800" height="300"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
