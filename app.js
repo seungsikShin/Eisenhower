@@ -52,6 +52,48 @@ const eventColors = [
 // 드래그 앤 드롭 관련 변수
 let draggedTask = null;
 
+// 관리자 권한 설정
+const ADMIN_USERS = [
+    'admin@company.com',
+    'sssblack87@gmail.com',  // 현재 사용자
+    'manager@company.com',
+    'supervisor@company.com'
+];
+
+// =============================================
+// 권한 관리 함수들
+// =============================================
+
+// 관리자 권한 확인
+function isAdmin(userEmail) {
+    return ADMIN_USERS.includes(userEmail?.toLowerCase());
+}
+
+// 편집 권한 확인 (본인 또는 관리자)
+function hasEditPermission(itemCreatorId, itemCreatorEmail) {
+    const currentUserEmail = currentUser?.email;
+    
+    // 본인이 작성한 경우
+    if (itemCreatorId === userId || itemCreatorEmail === currentUserEmail) {
+        return true;
+    }
+    
+    // 관리자인 경우
+    if (isAdmin(currentUserEmail)) {
+        return true;
+    }
+    
+    return false;
+}
+
+// 사용자 권한 표시
+function getUserRoleDisplay(userEmail) {
+    if (isAdmin(userEmail)) {
+        return '👑 관리자';
+    }
+    return '👤 일반';
+}
+
 // =============================================
 // 인증 관련 함수들
 // =============================================
@@ -143,6 +185,19 @@ function showMainApp() {
         mainApp.classList.add('show');
         mainApp.style.display = 'block';
     }
+    
+    // 데이터 로드
+    loadSharedAuditTasks();
+    loadPersonalTasks();
+    loadSharedCalendarEvents();
+    
+    // 차트 초기화 (Chart.js가 로드된 경우에만)
+    setTimeout(() => {
+        if (window.Chart && typeof initializeCharts === 'function') {
+            initializeCharts();
+        }
+    }, 500);
+    
     console.log('메인 앱 화면 표시됨');
 }
 
@@ -287,7 +342,11 @@ function renderSharedAuditTasks() {
         filteredTasks = sharedAuditTasks.filter(task => task.status === currentFilter);
     }
 
-    tableBody.innerHTML = filteredTasks.map(task => `
+    tableBody.innerHTML = filteredTasks.map(task => {
+        // 편집 권한 확인
+        const canEdit = hasEditPermission(task.createdBy, task.createdByEmail);
+        
+        return `
         <tr>
             <td>${task.category || '-'}</td>
             <td style="font-weight: 600;">
@@ -298,17 +357,21 @@ function renderSharedAuditTasks() {
             <td>${task.targetDept || '-'}</td>
             <td>${formatDateRange(task.startDate, task.endDate)}</td>
             <td><span class="status-badge ${getStatusClass(task.status)}">${task.status || '-'}</span></td>
-            <td>${task.responsiblePerson || '-'}</td>
+            <td>
+                ${task.responsiblePerson || '-'}
+                ${isAdmin(currentUser?.email) ? '<br><small style="color: #6b7280;">👑 관리자 권한</small>' : ''}
+            </td>
             <td>
                 <div class="action-btns">
                     <button class="btn-comment" onclick="showWorkComments('${task.id}')">💬 댓글</button>
                     <button class="btn-import" onclick="importToMatrix('${task.id}')">📥 가져오기</button>
-                    <button class="btn-edit" onclick="editWork('${task.id}')">✏️ 수정</button>
-                    <button class="btn-delete" onclick="deleteWork('${task.id}')">🗑️ 삭제</button>
+                    ${canEdit ? `<button class="btn-edit" onclick="editWork('${task.id}')">✏️ 수정</button>` : ''}
+                    ${canEdit ? `<button class="btn-delete" onclick="deleteWork('${task.id}')">🗑️ 삭제</button>` : ''}
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // 업무 폼 표시/숨기기
@@ -1629,6 +1692,20 @@ function renderMainCalendar() {
                 eventElement.textContent = event.title;
                 eventElement.title = `${event.title} (${event.type})`;
                 
+                // 드래그 앤 드롭 기능 (편집 권한이 있는 경우에만)
+                const canEdit = hasEditPermission(event.createdBy, event.createdByEmail);
+                if (canEdit) {
+                    eventElement.draggable = true;
+                    eventElement.dataset.eventId = event.id;
+                    eventElement.dataset.originalDate = event.startDate;
+                    eventElement.classList.add('draggable-event');
+                    eventElement.title += ' (드래그하여 이동 가능)';
+                    
+                    // 드래그 이벤트 핸들러
+                    eventElement.addEventListener('dragstart', handleEventDragStart);
+                    eventElement.addEventListener('dragend', handleEventDragEnd);
+                }
+                
                 // 이벤트 클릭 시 상세보기
                 eventElement.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1649,6 +1726,13 @@ function renderMainCalendar() {
             
             dayElement.appendChild(eventsContainer);
         }
+        
+        // 드롭 존 설정
+        dayElement.dataset.dateStr = dateStr;
+        dayElement.addEventListener('dragover', handleCalendarDragOver);
+        dayElement.addEventListener('dragenter', handleCalendarDragEnter);
+        dayElement.addEventListener('dragleave', handleCalendarDragLeave);
+        dayElement.addEventListener('drop', handleCalendarDrop);
         
         // 클릭 이벤트 - 해당 날짜에 새 이벤트 추가
         dayElement.addEventListener('click', () => {
@@ -1743,7 +1827,13 @@ function showEventDetail(event) {
     document.getElementById('event-detail-type').textContent = event.type || '업무';
     document.getElementById('event-detail-date').textContent = formatEventDate(event);
     document.getElementById('event-detail-time').textContent = formatEventTime(event);
-    document.getElementById('event-detail-creator').textContent = event.createdByName || event.createdByEmail || '알 수 없음';
+    
+    // 작성자 표시 (관리자 권한 표시 포함)
+    const creatorText = event.createdByName || event.createdByEmail || '알 수 없음';
+    const isCreatorAdmin = isAdmin(event.createdByEmail);
+    document.getElementById('event-detail-creator').innerHTML = 
+        `${creatorText}${isCreatorAdmin ? ' <span style="color: #f59e0b;">👑</span>' : ''}`;
+    
     document.getElementById('event-detail-participants').textContent = event.participants || '-';
     document.getElementById('event-detail-desc').textContent = event.description || '상세 설명이 없습니다.';
     
@@ -1751,8 +1841,11 @@ function showEventDetail(event) {
     const editBtn = document.querySelector('.btn-edit-event');
     const deleteBtn = document.querySelector('.btn-delete-event');
     
-    if (currentUser && event.createdBy === userId) {
-        // 본인이 작성한 일정인 경우에만 수정/삭제 가능
+    // 편집 권한 확인 (본인 또는 관리자)
+    const canEdit = hasEditPermission(event.createdBy, event.createdByEmail);
+    
+    if (currentUser && canEdit) {
+        // 본인이 작성한 일정이거나 관리자인 경우 수정/삭제 가능
         if (editBtn) {
             editBtn.style.display = 'inline-block';
             // 기존 이벤트 리스너 제거 후 새로 추가
@@ -2093,6 +2186,322 @@ function updateDashboardStats() {
     document.getElementById('progress-work-count').textContent = progressCount;
     document.getElementById('completed-work-count').textContent = completedCount;
     document.getElementById('my-work-count').textContent = myTaskCount;
+    
+    // 차트 업데이트
+    updateDashboardCharts();
+}
+
+// =============================================
+// 차트 관련 함수들
+// =============================================
+
+let categoryChart = null;
+let statusChart = null;
+let monthlyChart = null;
+
+// 차트 초기화
+function initializeCharts() {
+    console.log('📊 차트 초기화 시작');
+    
+    try {
+        // 업무 분류별 차트
+        initCategoryChart();
+        
+        // 진행 상태별 차트
+        initStatusChart();
+        
+        // 월별 추이 차트
+        initMonthlyChart();
+        
+        console.log('✅ 차트 초기화 완료');
+    } catch (error) {
+        console.error('❌ 차트 초기화 실패:', error);
+    }
+}
+
+// 업무 분류별 원형 차트
+function initCategoryChart() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
+    
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['일상감사', '특별감사', '특정감사', '정기감사', '기타'],
+            datasets: [{
+                data: [0, 0, 0, 0, 0],
+                backgroundColor: [
+                    '#3b82f6',  // 파랑
+                    '#10b981',  // 초록
+                    '#f59e0b',  // 주황
+                    '#ef4444',  // 빨강
+                    '#8b5cf6'   // 보라
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
+                            return `${context.label}: ${context.parsed}개 (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 진행 상태별 막대 차트
+function initStatusChart() {
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+    
+    statusChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['계획수립중', '자료수집중', '자료검토중', '보고서작성중', '보고대기중', '보고완료'],
+            datasets: [{
+                label: '업무 수',
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                    '#fbbf24',  // 노랑
+                    '#3b82f6',  // 파랑  
+                    '#8b5cf6',  // 보라
+                    '#f59e0b',  // 주황
+                    '#06b6d4',  // 청록
+                    '#10b981'   // 초록
+                ],
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.parsed.y}개`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 월별 업무 추이 라인 차트
+function initMonthlyChart() {
+    const ctx = document.getElementById('monthlyChart');
+    if (!ctx) return;
+    
+    // 최근 6개월 레이블 생성
+    const labels = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        labels.push(`${date.getFullYear()}년 ${date.getMonth() + 1}월`);
+    }
+    
+    monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '등록된 업무',
+                data: [0, 0, 0, 0, 0, 0],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.parsed.y}개`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: '#f3f4f6'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#f3f4f6'
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+// 차트 데이터 업데이트
+function updateDashboardCharts() {
+    if (!sharedAuditTasks || sharedAuditTasks.length === 0) {
+        console.log('📊 업무 데이터가 없어 차트를 초기화합니다.');
+        resetCharts();
+        return;
+    }
+    
+    console.log('📊 차트 데이터 업데이트 중...', sharedAuditTasks.length, '개 업무');
+    
+    try {
+        updateCategoryChartData();
+        updateStatusChartData();
+        updateMonthlyChartData();
+    } catch (error) {
+        console.error('❌ 차트 업데이트 실패:', error);
+    }
+}
+
+// 업무 분류별 차트 데이터 업데이트
+function updateCategoryChartData() {
+    if (!categoryChart) return;
+    
+    const categories = ['일상감사', '특별감사', '특정감사', '정기감사', '기타'];
+    const data = categories.map(category => 
+        sharedAuditTasks.filter(task => task.category === category).length
+    );
+    
+    categoryChart.data.datasets[0].data = data;
+    categoryChart.update('active');
+    
+    console.log('📊 분류별 차트 업데이트:', data);
+}
+
+// 진행 상태별 차트 데이터 업데이트
+function updateStatusChartData() {
+    if (!statusChart) return;
+    
+    const statuses = ['계획수립중', '자료수집중', '자료검토중', '보고서작성중', '보고대기중', '보고완료'];
+    const data = statuses.map(status => 
+        sharedAuditTasks.filter(task => task.status === status).length
+    );
+    
+    statusChart.data.datasets[0].data = data;
+    statusChart.update('active');
+    
+    console.log('📊 상태별 차트 업데이트:', data);
+}
+
+// 월별 추이 차트 데이터 업데이트
+function updateMonthlyChartData() {
+    if (!monthlyChart) return;
+    
+    const now = new Date();
+    const monthlyData = [];
+    
+    // 최근 6개월 데이터 계산
+    for (let i = 5; i >= 0; i--) {
+        const targetMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const count = sharedAuditTasks.filter(task => {
+            if (!task.createdAt) return false;
+            const taskDate = new Date(task.createdAt);
+            return taskDate.getFullYear() === targetMonth.getFullYear() &&
+                   taskDate.getMonth() === targetMonth.getMonth();
+        }).length;
+        monthlyData.push(count);
+    }
+    
+    monthlyChart.data.datasets[0].data = monthlyData;
+    monthlyChart.update('active');
+    
+    console.log('📊 월별 차트 업데이트:', monthlyData);
+}
+
+// 차트 초기화 (데이터 없을 때)
+function resetCharts() {
+    if (categoryChart) {
+        categoryChart.data.datasets[0].data = [0, 0, 0, 0, 0];
+        categoryChart.update('none');
+    }
+    
+    if (statusChart) {
+        statusChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+        statusChart.update('none');
+    }
+    
+    if (monthlyChart) {
+        monthlyChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+        monthlyChart.update('none');
+    }
 }
 
 // 매트릭스 통계 업데이트
@@ -2621,7 +3030,163 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // 차트 초기화 (로그인 후에 실행되도록 지연)
+    setTimeout(() => {
+        if (window.Chart) {
+            initializeCharts();
+        }
+    }, 1000);
+    
     console.log('🎯 통합 감사업무 매트릭스 시스템이 로드되었습니다!');
 });
 
 console.log('통합 감사업무 매트릭스 애플리케이션이 초기화되었습니다.');
+
+// =============================================
+// 캘린더 드래그 앤 드롭 관련 함수들
+// =============================================
+
+let draggedEvent = null;
+let draggedEventElement = null;
+
+// 일정 드래그 시작
+function handleEventDragStart(e) {
+    const eventId = e.target.dataset.eventId;
+    const originalDate = e.target.dataset.originalDate;
+    
+    draggedEvent = {
+        id: eventId,
+        originalDate: originalDate,
+        element: e.target
+    };
+    
+    draggedEventElement = e.target;
+    
+    // 드래그 중인 요소 스타일
+    e.target.classList.add('dragging');
+    e.target.style.opacity = '0.5';
+    
+    // 드래그 데이터 설정
+    e.dataTransfer.setData('text/plain', eventId);
+    e.dataTransfer.effectAllowed = 'move';
+    
+    console.log('📅 일정 드래그 시작:', eventId, originalDate);
+}
+
+// 일정 드래그 종료
+function handleEventDragEnd(e) {
+    // 드래그 중인 스타일 제거
+    e.target.classList.remove('dragging');
+    e.target.style.opacity = '1';
+    
+    // 모든 드롭 존에서 하이라이트 제거
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        day.classList.remove('drag-over');
+    });
+    
+    console.log('📅 일정 드래그 종료');
+}
+
+// 캘린더 날짜 위로 드래그
+function handleCalendarDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+// 캘린더 날짜 진입
+function handleCalendarDragEnter(e) {
+    e.preventDefault();
+    if (draggedEvent) {
+        e.currentTarget.classList.add('drag-over');
+    }
+}
+
+// 캘린더 날짜 이탈
+function handleCalendarDragLeave(e) {
+    // 자식 요소로 이동하는 경우가 아닐 때만 하이라이트 제거
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+        e.currentTarget.classList.remove('drag-over');
+    }
+}
+
+// 캘린더 날짜에 드롭
+function handleCalendarDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const targetDate = e.currentTarget.dataset.dateStr;
+    e.currentTarget.classList.remove('drag-over');
+    
+    if (!draggedEvent || !targetDate) {
+        console.log('❌ 드래그된 일정 또는 대상 날짜가 없음');
+        return;
+    }
+    
+    // 같은 날짜로 드롭하는 경우 무시
+    if (draggedEvent.originalDate === targetDate) {
+        console.log('📅 같은 날짜로 이동 - 무시');
+        return;
+    }
+    
+    // 일정 이동 실행
+    moveCalendarEvent(draggedEvent.id, draggedEvent.originalDate, targetDate);
+    
+    // 드래그 상태 초기화
+    draggedEvent = null;
+    draggedEventElement = null;
+}
+
+// 일정 이동 함수
+async function moveCalendarEvent(eventId, originalDate, newDate) {
+    try {
+        console.log('📅 일정 이동 시작:', eventId, originalDate, '->', newDate);
+        
+        // 이동할 일정 찾기
+        const event = sharedCalendarEvents.find(e => e.id === eventId);
+        if (!event) {
+            showMessage('이동할 일정을 찾을 수 없습니다.', 'error');
+            return;
+        }
+        
+        // 권한 확인
+        if (!hasEditPermission(event.createdBy, event.createdByEmail)) {
+            showMessage('일정을 이동할 권한이 없습니다.', 'error');
+            return;
+        }
+        
+        // 날짜 계산
+        const originalStartDate = new Date(event.startDate);
+        const originalEndDate = event.endDate ? new Date(event.endDate) : originalStartDate;
+        const daysDiff = Math.floor((originalEndDate - originalStartDate) / (1000 * 60 * 60 * 24));
+        
+        const newStartDate = new Date(newDate);
+        const newEndDate = new Date(newStartDate);
+        newEndDate.setDate(newEndDate.getDate() + daysDiff);
+        
+        // 업데이트할 데이터
+        const updatedEvent = {
+            ...event,
+            startDate: newStartDate.toISOString().split('T')[0],
+            endDate: newEndDate.toISOString().split('T')[0],
+            lastModified: new Date().toISOString(),
+            lastModifiedBy: userId,
+            lastModifiedByEmail: currentUser.email
+        };
+        
+        // Firebase 업데이트
+        const eventRef = ref(database, `shared-calendar-events/${eventId}`);
+        await set(eventRef, updatedEvent);
+        
+        // 성공 메시지
+        const dateStr = newDate === updatedEvent.endDate ? 
+            newDate : 
+            `${newDate} ~ ${updatedEvent.endDate}`;
+        showMessage(`일정이 ${dateStr}로 이동되었습니다. ✅`, 'success');
+        
+        console.log('✅ 일정 이동 완료');
+        
+    } catch (error) {
+        console.error('❌ 일정 이동 실패:', error);
+        showMessage('일정 이동 중 오류가 발생했습니다.', 'error');
+    }
+}
