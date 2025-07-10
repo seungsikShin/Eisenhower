@@ -121,26 +121,28 @@
                     </div>
 
                     <!-- 업무 테이블 -->
-                    <table class="work-table">
-                        <thead>
-                            <tr>
-                                <th>업무 분류</th>
-                                <th>업무명</th>
-                                <th>대상 부서</th>
-                                <th>감사 기간</th>
-                                <th>진행 상태</th>
-                                <th>담당자</th>
-                                <th>관리</th>
-                            </tr>
-                        </thead>
-                        <tbody id="work-table-body">
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
-                                    등록된 업무가 없습니다. 새 업무를 등록해주세요.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="work-table-container">
+                        <table class="work-table">
+                            <thead>
+                                <tr>
+                                    <th>업무 분류</th>
+                                    <th>업무명</th>
+                                    <th>대상 부서</th>
+                                    <th>감사 기간</th>
+                                    <th>진행 상태</th>
+                                    <th>담당자</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="work-table-body">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                                        등록된 업무가 없습니다. 새 업무를 등록해주세요.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- 업무 등록 폼 -->
@@ -677,6 +679,85 @@
                 <div class="event-detail-actions">
                     <button class="btn-edit-event" onclick="editEvent()">✏️ 수정</button>
                     <button class="btn-delete-event" onclick="deleteEvent()">🗑️ 삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 업무 퀵뷰 모달 -->
+    <div id="work-quickview-modal" class="work-quickview-modal">
+        <div class="work-quickview-content">
+            <div class="work-quickview-header">
+                <h3 id="quickview-work-title">업무 상세정보</h3>
+                <button class="close-btn" onclick="hideWorkQuickView()">✕</button>
+            </div>
+            
+            <div class="work-quickview-body">
+                <!-- 업무 기본 정보 -->
+                <div class="work-info-section">
+                    <div class="work-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">업무분류:</span>
+                            <span id="quickview-category">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">진행상태:</span>
+                            <span id="quickview-status" class="status-badge">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">대상부서:</span>
+                            <span id="quickview-target-dept">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">담당자:</span>
+                            <span id="quickview-responsible">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">감사기간:</span>
+                            <span id="quickview-period">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">등록자:</span>
+                            <span id="quickview-creator">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="work-description" id="quickview-description-section" style="display: none;">
+                        <h4>📝 업무 설명</h4>
+                        <p id="quickview-description">-</p>
+                    </div>
+                    
+                    <div class="work-issues" id="quickview-issues-section" style="display: none;">
+                        <h4>⚠️ 주요 지적사항</h4>
+                        <p id="quickview-issues">-</p>
+                    </div>
+                </div>
+                
+                <!-- 댓글 섹션 -->
+                <div class="quickview-comments-section">
+                    <div class="comments-header">
+                        <h4>💬 댓글</h4>
+                        <span class="comments-count" id="quickview-comments-count">0개</span>
+                    </div>
+                    
+                    <!-- 댓글 목록 -->
+                    <div class="comments-list-compact" id="quickview-comments-list">
+                        <div class="no-comments">아직 댓글이 없습니다.</div>
+                    </div>
+                    
+                    <!-- 댓글 작성 -->
+                    <div class="comment-form-compact">
+                        <div class="comment-input-container-compact">
+                            <textarea id="quickview-comment-input" class="comment-textarea-compact" placeholder="댓글을 입력하세요..." rows="2"></textarea>
+                            <button class="btn-comment-submit-compact" onclick="addQuickViewComment()">등록</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 액션 버튼들 -->
+                <div class="quickview-actions">
+                    <button class="btn-quickview-detail" onclick="openFullComments()">상세댓글 보기</button>
+                    <button class="btn-quickview-edit" onclick="editWorkFromQuickView()">✏️ 수정</button>
                 </div>
             </div>
         </div>
