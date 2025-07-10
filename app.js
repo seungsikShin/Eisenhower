@@ -290,7 +290,11 @@ function renderSharedAuditTasks() {
     tableBody.innerHTML = filteredTasks.map(task => `
         <tr>
             <td>${task.category || '-'}</td>
-            <td style="font-weight: 600;">${task.workName || '-'}</td>
+            <td style="font-weight: 600;">
+                <span class="work-name-clickable" onclick="showWorkQuickView('${task.id}')" title="클릭하여 상세정보 및 댓글 보기">
+                    ${task.workName || '-'}
+                </span>
+            </td>
             <td>${task.targetDept || '-'}</td>
             <td>${formatDateRange(task.startDate, task.endDate)}</td>
             <td><span class="status-badge ${getStatusClass(task.status)}">${task.status || '-'}</span></td>
@@ -408,6 +412,7 @@ window.deleteWork = function(workId) {
 let currentWorkComments = [];
 let currentWorkHistory = [];
 let selectedWorkId = null;
+let currentWorkId = null;
 
 // 댓글 모달 표시
 window.showWorkComments = function(workId) {
@@ -439,6 +444,219 @@ window.hideCommentModal = function() {
     selectedWorkId = null;
     currentWorkComments = [];
     currentWorkHistory = [];
+};
+
+// 사용자 표시 이름 가져오기 (이름 우선, 없으면 이메일)
+async function getUserDisplayName(email) {
+    if (!email) return '익명';
+    
+    // 이메일에서 @ 앞부분을 이름으로 사용
+    const namePart = email.split('@')[0];
+    
+    // 한글 이름 패턴인지 확인 (간단한 방법)
+    const koreanPattern = /[가-힣]/;
+    if (koreanPattern.test(namePart)) {
+        return namePart;
+    }
+    
+    // 영문이면 첫 글자만 대문자로
+    return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+}
+
+// 시간 전 표시 함수
+function getTimeAgo(dateString) {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diff = now - past;
+    
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}일 전`;
+    if (hours > 0) return `${hours}시간 전`;
+    if (minutes > 0) return `${minutes}분 전`;
+    return '방금 전';
+}
+
+// 업무 퀵뷰 모달 표시
+window.showWorkQuickView = async function(workId) {
+    console.log('👁️ 업무 퀵뷰 표시 중:', workId);
+    
+    try {
+        currentWorkId = workId;
+        
+        // 업무 정보 가져오기
+        const work = sharedAuditTasks.find(task => task.id === workId);
+        if (!work) {
+            showMessage('업무를 찾을 수 없습니다.', 'error');
+            return;
+        }
+        
+        // 업무 정보 표시
+        document.getElementById('quickview-work-title').textContent = work.workName || '업무명 없음';
+        document.getElementById('quickview-category').textContent = work.category || '-';
+        document.getElementById('quickview-target-dept').textContent = work.targetDept || '-';
+        document.getElementById('quickview-period').textContent = formatDateRange(work.startDate, work.endDate);
+        document.getElementById('quickview-responsible').textContent = work.responsiblePerson || '-';
+        
+        // 상태 배지
+        const statusElement = document.getElementById('quickview-status');
+        statusElement.textContent = work.status || '-';
+        statusElement.className = `status-badge ${getStatusClass(work.status)}`;
+        
+        // 등록자 이름 표시
+        const creatorName = await getUserDisplayName(work.createdByEmail);
+        document.getElementById('quickview-creator').textContent = creatorName;
+        
+        // 설명 및 지적사항 (있는 경우)
+        const descSection = document.getElementById('quickview-description-section');
+        const issuesSection = document.getElementById('quickview-issues-section');
+        
+        if (work.description && work.description.trim()) {
+            document.getElementById('quickview-description').textContent = work.description;
+            descSection.style.display = 'block';
+        } else {
+            descSection.style.display = 'none';
+        }
+        
+        if (work.keyIssues && work.keyIssues.trim()) {
+            document.getElementById('quickview-issues').textContent = work.keyIssues;
+            issuesSection.style.display = 'block';
+        } else {
+            issuesSection.style.display = 'none';
+        }
+        
+        // 댓글 로드 및 표시
+        await loadQuickViewComments(workId);
+        
+        // 모달 표시
+        document.getElementById('work-quickview-modal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('퀵뷰 모달 표시 오류:', error);
+        showMessage('업무 정보 로드 중 오류가 발생했습니다.', 'error');
+    }
+};
+
+// 퀵뷰 모달 숨기기
+window.hideWorkQuickView = function() {
+    document.getElementById('work-quickview-modal').style.display = 'none';
+    currentWorkId = null;
+};
+
+// 퀵뷰 댓글 로드
+async function loadQuickViewComments(workId) {
+    try {
+        const commentsRef = ref(database, `work-comments/${workId}`);
+        const snapshot = await get(commentsRef);
+        
+        const commentsList = document.getElementById('quickview-comments-list');
+        const commentsCount = document.getElementById('quickview-comments-count');
+        
+        if (!snapshot.exists()) {
+            commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다.</div>';
+            commentsCount.textContent = '0개';
+            return;
+        }
+        
+        const comments = Object.entries(snapshot.val() || {})
+            .map(([id, comment]) => ({ id, ...comment }))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        commentsCount.textContent = `${comments.length}개`;
+        
+        if (comments.length === 0) {
+            commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다.</div>';
+            return;
+        }
+        
+        // 최근 3개 댓글만 표시
+        const recentComments = comments.slice(0, 3);
+        
+        const commentsHTML = await Promise.all(recentComments.map(async comment => {
+            const authorName = await getUserDisplayName(comment.authorEmail);
+            const timeAgo = getTimeAgo(comment.createdAt);
+            
+            return `
+                <div class="comment-item-compact">
+                    <div class="comment-header-compact">
+                        <span class="comment-author-compact">${authorName}</span>
+                        <span class="comment-date-compact">${timeAgo}</span>
+                    </div>
+                    <div class="comment-content-compact">${escapeHtml(comment.content)}</div>
+                </div>
+            `;
+        }));
+        
+        commentsList.innerHTML = commentsHTML.join('');
+        
+        if (comments.length > 3) {
+            commentsList.innerHTML += `<div style="text-align: center; margin-top: 8px; color: #6b7280; font-size: 11px;">+${comments.length - 3}개 더 보기</div>`;
+        }
+        
+    } catch (error) {
+        console.error('퀵뷰 댓글 로드 오류:', error);
+    }
+}
+
+// 퀵뷰에서 댓글 추가
+window.addQuickViewComment = async function() {
+    const content = document.getElementById('quickview-comment-input').value.trim();
+    
+    if (!content) {
+        showMessage('댓글 내용을 입력하세요.', 'error');
+        return;
+    }
+    
+    if (!currentWorkId) {
+        showMessage('업무 정보를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    try {
+        if (!currentUser) {
+            showMessage('로그인이 필요합니다.', 'error');
+            return;
+        }
+        
+        const commentData = {
+            content: content,
+            authorId: userId,
+            authorName: currentUser.displayName || null,
+            authorEmail: currentUser.email,
+            createdAt: new Date().toISOString(),
+            workId: currentWorkId
+        };
+        
+        const commentRef = push(ref(database, `work-comments/${currentWorkId}`));
+        await set(commentRef, commentData);
+        
+        // 댓글 입력창 초기화
+        document.getElementById('quickview-comment-input').value = '';
+        
+        // 댓글 목록 새로고침
+        await loadQuickViewComments(currentWorkId);
+        
+        showMessage('댓글이 등록되었습니다.', 'success');
+        
+    } catch (error) {
+        console.error('퀵뷰 댓글 추가 오류:', error);
+        showMessage('댓글 등록 중 오류가 발생했습니다.', 'error');
+    }
+};
+
+// 퀵뷰에서 상세댓글 보기로 이동
+window.openFullComments = function() {
+    hideWorkQuickView();
+    showWorkComments(currentWorkId);
+};
+
+// 퀵뷰에서 수정하기
+window.editWorkFromQuickView = function() {
+    hideWorkQuickView();
+    editWork(currentWorkId);
 };
 
 // 댓글 로드
@@ -488,7 +706,7 @@ function loadWorkHistory(workId) {
 }
 
 // 댓글 렌더링
-function renderComments() {
+async function renderComments() {
     const commentsList = document.getElementById('comments-list');
     
     if (currentWorkComments.length === 0) {
@@ -496,22 +714,28 @@ function renderComments() {
         return;
     }
     
-    commentsList.innerHTML = currentWorkComments.map(comment => `
-        <div class="comment-item">
-            <div class="comment-header">
-                <span class="comment-author">${comment.authorName || comment.authorEmail || '익명'}</span>
-                <span class="comment-time">${formatCommentTime(comment.createdAt)}</span>
+    const commentsHTML = await Promise.all(currentWorkComments.map(async comment => {
+        const authorName = await getUserDisplayName(comment.authorEmail);
+        
+        return `
+            <div class="comment-item">
+                <div class="comment-header">
+                    <span class="comment-author">${authorName}</span>
+                    <span class="comment-time">${formatCommentTime(comment.createdAt)}</span>
+                </div>
+                <div class="comment-content">${escapeHtml(comment.content)}</div>
             </div>
-            <div class="comment-content">${escapeHtml(comment.content)}</div>
-        </div>
-    `).join('');
+        `;
+    }));
+    
+    commentsList.innerHTML = commentsHTML.join('');
     
     // 스크롤을 아래로
     commentsList.scrollTop = commentsList.scrollHeight;
 }
 
 // 업무 변경 이력 렌더링
-function renderWorkHistory() {
+async function renderWorkHistory() {
     const historyList = document.getElementById('work-history-list');
     
     if (currentWorkHistory.length === 0) {
@@ -519,19 +743,25 @@ function renderWorkHistory() {
         return;
     }
     
-    historyList.innerHTML = currentWorkHistory.map(history => `
-        <div class="history-item">
-            <div class="history-header">
-                <span class="history-action">${history.action}</span>
-                <span class="history-time">${formatCommentTime(history.createdAt)}</span>
+    const historyHTML = await Promise.all(currentWorkHistory.map(async history => {
+        const userName = await getUserDisplayName(history.userEmail);
+        
+        return `
+            <div class="history-item">
+                <div class="history-header">
+                    <span class="history-action">${history.action}</span>
+                    <span class="history-time">${formatCommentTime(history.createdAt)}</span>
+                </div>
+                <div class="history-details">
+                    <strong>${userName}</strong>이(가) 
+                    ${history.details || '업무를 변경했습니다.'}
+                    ${history.changes ? renderHistoryChanges(history.changes) : ''}
+                </div>
             </div>
-            <div class="history-details">
-                <strong>${history.userName || history.userEmail || '익명'}</strong>이(가) 
-                ${history.details || '업무를 변경했습니다.'}
-                ${history.changes ? renderHistoryChanges(history.changes) : ''}
-            </div>
-        </div>
-    `).join('');
+        `;
+    }));
+    
+    historyList.innerHTML = historyHTML.join('');
 }
 
 // 이력 변경사항 렌더링
@@ -2253,6 +2483,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const eventModal = document.getElementById('event-modal');
     const eventDetailModal = document.getElementById('event-detail-modal');
     const commentModal = document.getElementById('comment-modal');
+    const quickviewModal = document.getElementById('work-quickview-modal');
     
     if (eventModal) {
         eventModal.addEventListener('click', function(e) {
@@ -2278,6 +2509,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    if (quickviewModal) {
+        quickviewModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideWorkQuickView();
+            }
+        });
+    }
+    
     // 댓글 입력창에서 Ctrl+Enter로 댓글 등록
     const commentInput = document.getElementById('comment-input');
     if (commentInput) {
@@ -2285,6 +2524,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.ctrlKey && e.key === 'Enter') {
                 e.preventDefault();
                 addComment();
+            }
+        });
+    }
+    
+    // 퀵뷰 댓글 입력창에서 Ctrl+Enter로 댓글 등록
+    const quickviewCommentInput = document.getElementById('quickview-comment-input');
+    if (quickviewCommentInput) {
+        quickviewCommentInput.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                addQuickViewComment();
             }
         });
     }
