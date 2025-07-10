@@ -58,15 +58,29 @@ let draggedTask = null;
 
 // 인증 상태 변화 감지
 onAuthStateChanged(auth, (user) => {
+    console.log('인증 상태 변화 감지:', user ? user.email : '로그아웃');
+    
     if (user) {
         currentUser = user;
         userId = user.uid;
-        loadUserData(user.uid);
-        showMainApp();
-        loadSharedAuditTasks();
-        loadPersonalTasks();
-        loadDatesWithData();
-        renderMiniCalendar();
+        
+        // 사용자 데이터 로드 후 메인 화면 표시
+        loadUserData(user.uid).then(() => {
+            showMainApp();
+            
+            // 데이터 로드
+            setTimeout(() => {
+                loadSharedAuditTasks();
+                loadPersonalTasks();
+                loadDatesWithData();
+                renderMiniCalendar();
+                console.log('모든 데이터 로드 완료');
+            }, 100);
+        }).catch((error) => {
+            console.error('사용자 데이터 로드 실패:', error);
+            showMainApp(); // 에러가 있어도 메인 화면은 표시
+        });
+        
         console.log('사용자 로그인됨:', user.email);
     } else {
         currentUser = null;
@@ -84,26 +98,52 @@ async function loadUserData(uid) {
         
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            document.getElementById('user-name').textContent = userData.name || currentUser.email;
+            const userNameEl = document.getElementById('user-name');
+            if (userNameEl) {
+                userNameEl.textContent = userData.name || currentUser.email;
+            }
             currentUser.displayName = userData.name;
         } else {
-            document.getElementById('user-name').textContent = currentUser.email;
+            const userNameEl = document.getElementById('user-name');
+            if (userNameEl) {
+                userNameEl.textContent = currentUser.email;
+            }
         }
+        console.log('사용자 데이터 로드 성공');
+        return Promise.resolve();
     } catch (error) {
         console.error('사용자 데이터 로드 오류:', error);
-        document.getElementById('user-name').textContent = currentUser.email;
+        const userNameEl = document.getElementById('user-name');
+        if (userNameEl) {
+            userNameEl.textContent = currentUser.email;
+        }
+        return Promise.resolve(); // 에러가 있어도 resolve
     }
 }
 
 // 화면 전환 함수들
 function showAuthScreen() {
-    document.getElementById('auth-container').style.display = 'flex';
-    document.getElementById('main-app').classList.remove('show');
+    const authContainer = document.getElementById('auth-container');
+    const mainApp = document.getElementById('main-app');
+    
+    if (authContainer) authContainer.style.display = 'flex';
+    if (mainApp) {
+        mainApp.classList.remove('show');
+        mainApp.style.display = 'none';
+    }
+    console.log('인증 화면 표시됨');
 }
 
 function showMainApp() {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('main-app').classList.add('show');
+    const authContainer = document.getElementById('auth-container');
+    const mainApp = document.getElementById('main-app');
+    
+    if (authContainer) authContainer.style.display = 'none';
+    if (mainApp) {
+        mainApp.classList.add('show');
+        mainApp.style.display = 'block';
+    }
+    console.log('메인 앱 화면 표시됨');
 }
 
 // 인증 메시지 표시
@@ -172,7 +212,15 @@ window.switchView = function(viewName) {
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    event.target.classList.add('active');
+    
+    // 클릭된 버튼에 active 클래스 추가
+    const clickedButton = Array.from(document.querySelectorAll('.nav-tab')).find(tab => 
+        tab.textContent.includes(viewName === 'dashboard' ? '대시보드' : 
+                                  viewName === 'calendar' ? '일정' : '매트릭스')
+    );
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
 
     // 뷰 전환
     document.querySelectorAll('.dashboard-view, .matrix-view, .calendar-view').forEach(view => {
@@ -191,6 +239,8 @@ window.switchView = function(viewName) {
         loadPersonalTasks();
         renderMiniCalendar();
     }
+    
+    console.log(`뷰 전환됨: ${viewName}`);
 };
 
 // =============================================
@@ -1446,7 +1496,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     setButtonLoading('login-btn', true);
     
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+        console.log('로그인 시도 중...', email);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('Firebase 로그인 성공:', userCredential.user.uid);
         showAuthMessage('로그인 성공! 환영합니다! 🎉', 'success');
     } catch (error) {
         console.error('로그인 오류:', error);
@@ -1513,6 +1565,13 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         });
         
         showAuthMessage('회원가입 성공! 환영합니다! 🎉', 'success');
+        
+        // 회원가입 성공 후 잠깐 대기 후 자동으로 로그인 폼으로 전환
+        setTimeout(() => {
+            if (document.getElementById('signup-form').style.display !== 'none') {
+                toggleAuthForm();
+            }
+        }, 1500);
     } catch (error) {
         console.error('회원가입 오류:', error);
         let errorMessage = '회원가입에 실패했습니다.';
@@ -1706,6 +1765,11 @@ document.getElementById('event-form').addEventListener('submit', async (e) => {
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 통합 감사업무 매트릭스 시스템 초기화 시작');
+    
+    // 기본적으로 인증 화면 표시
+    showAuthScreen();
+    
     const today = new Date().toISOString().split('T')[0];
     const taskDateInput = document.getElementById('task-date');
     const startDateInput = document.getElementById('start-date');
