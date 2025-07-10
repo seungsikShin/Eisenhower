@@ -297,6 +297,7 @@ function renderSharedAuditTasks() {
             <td>${task.responsiblePerson || '-'}</td>
             <td>
                 <div class="action-btns">
+                    <button class="btn-comment" onclick="showWorkComments('${task.id}')">💬 댓글</button>
                     <button class="btn-import" onclick="importToMatrix('${task.id}')">📥 가져오기</button>
                     <button class="btn-edit" onclick="editWork('${task.id}')">✏️ 수정</button>
                     <button class="btn-delete" onclick="deleteWork('${task.id}')">🗑️ 삭제</button>
@@ -398,6 +399,277 @@ window.deleteWork = function(workId) {
             showMessage('업무 삭제 중 오류가 발생했습니다.', 'error');
         });
 };
+
+// =============================================
+// 댓글 및 업무 이력 관리 기능
+// =============================================
+
+// 댓글 관련 변수
+let currentWorkComments = [];
+let currentWorkHistory = [];
+let selectedWorkId = null;
+
+// 댓글 모달 표시
+window.showWorkComments = function(workId) {
+    console.log('💬 댓글 모달 표시:', workId);
+    
+    const work = sharedAuditTasks.find(task => task.id === workId);
+    if (!work) {
+        showMessage('업무를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    selectedWorkId = workId;
+    
+    // 모달 제목 설정
+    document.getElementById('comment-work-title').textContent = `${work.workName} - 댓글`;
+    
+    // 댓글과 이력 로드
+    loadWorkComments(workId);
+    loadWorkHistory(workId);
+    
+    // 모달 표시
+    document.getElementById('comment-modal').classList.add('show');
+};
+
+// 댓글 모달 숨기기
+window.hideCommentModal = function() {
+    document.getElementById('comment-modal').classList.remove('show');
+    document.getElementById('comment-input').value = '';
+    selectedWorkId = null;
+    currentWorkComments = [];
+    currentWorkHistory = [];
+};
+
+// 댓글 로드
+function loadWorkComments(workId) {
+    const commentsRef = ref(database, `work-comments/${workId}`);
+    
+    onValue(commentsRef, (snapshot) => {
+        currentWorkComments = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).forEach(key => {
+                currentWorkComments.push({
+                    id: key,
+                    ...data[key]
+                });
+            });
+        }
+        
+        // 시간순 정렬 (최신 댓글이 아래로)
+        currentWorkComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        
+        renderComments();
+    });
+}
+
+// 업무 변경 이력 로드
+function loadWorkHistory(workId) {
+    const historyRef = ref(database, `work-history/${workId}`);
+    
+    onValue(historyRef, (snapshot) => {
+        currentWorkHistory = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).forEach(key => {
+                currentWorkHistory.push({
+                    id: key,
+                    ...data[key]
+                });
+            });
+        }
+        
+        // 시간순 정렬 (최신 이력이 위로)
+        currentWorkHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        renderWorkHistory();
+    });
+}
+
+// 댓글 렌더링
+function renderComments() {
+    const commentsList = document.getElementById('comments-list');
+    
+    if (currentWorkComments.length === 0) {
+        commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!</div>';
+        return;
+    }
+    
+    commentsList.innerHTML = currentWorkComments.map(comment => `
+        <div class="comment-item">
+            <div class="comment-header">
+                <span class="comment-author">${comment.authorName || comment.authorEmail || '익명'}</span>
+                <span class="comment-time">${formatCommentTime(comment.createdAt)}</span>
+            </div>
+            <div class="comment-content">${escapeHtml(comment.content)}</div>
+        </div>
+    `).join('');
+    
+    // 스크롤을 아래로
+    commentsList.scrollTop = commentsList.scrollHeight;
+}
+
+// 업무 변경 이력 렌더링
+function renderWorkHistory() {
+    const historyList = document.getElementById('work-history-list');
+    
+    if (currentWorkHistory.length === 0) {
+        historyList.innerHTML = '<div class="no-history">아직 변경 이력이 없습니다.</div>';
+        return;
+    }
+    
+    historyList.innerHTML = currentWorkHistory.map(history => `
+        <div class="history-item">
+            <div class="history-header">
+                <span class="history-action">${history.action}</span>
+                <span class="history-time">${formatCommentTime(history.createdAt)}</span>
+            </div>
+            <div class="history-details">
+                <strong>${history.userName || history.userEmail || '익명'}</strong>이(가) 
+                ${history.details || '업무를 변경했습니다.'}
+                ${history.changes ? renderHistoryChanges(history.changes) : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// 이력 변경사항 렌더링
+function renderHistoryChanges(changes) {
+    if (!changes || typeof changes !== 'object') return '';
+    
+    return Object.entries(changes).map(([field, change]) => {
+        if (change.from === change.to) return '';
+        return `<div class="history-change">
+            <strong>${getFieldDisplayName(field)}:</strong> 
+            "${change.from || '없음'}" → "${change.to || '없음'}"
+        </div>`;
+    }).filter(Boolean).join('');
+}
+
+// 필드명 한글 변환
+function getFieldDisplayName(field) {
+    const fieldNames = {
+        'workName': '업무명',
+        'category': '업무분류',
+        'targetDept': '대상부서',
+        'responsiblePerson': '담당자',
+        'status': '진행상태',
+        'startDate': '시작일자',
+        'endDate': '종료일자',
+        'description': '업무설명',
+        'keyIssues': '주요지적사항'
+    };
+    return fieldNames[field] || field;
+}
+
+// 댓글 추가
+window.addComment = function() {
+    if (!selectedWorkId || !currentUser) {
+        showMessage('로그인이 필요합니다.', 'error');
+        return;
+    }
+    
+    const commentInput = document.getElementById('comment-input');
+    const content = commentInput.value.trim();
+    
+    if (!content) {
+        showMessage('댓글 내용을 입력해주세요.', 'error');
+        return;
+    }
+    
+    const submitBtn = document.querySelector('.btn-comment-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록 중...';
+    
+    const commentData = {
+        content: content,
+        authorId: userId,
+        authorName: currentUser.displayName || null,
+        authorEmail: currentUser.email,
+        createdAt: new Date().toISOString(),
+        workId: selectedWorkId
+    };
+    
+    const commentsRef = ref(database, `work-comments/${selectedWorkId}`);
+    const newCommentRef = push(commentsRef);
+    
+    set(newCommentRef, commentData)
+        .then(() => {
+            console.log('✅ 댓글 추가 성공');
+            commentInput.value = '';
+            showMessage('댓글이 추가되었습니다! 💬', 'success');
+        })
+        .catch((error) => {
+            console.error('❌ 댓글 추가 실패:', error);
+            showMessage('댓글 추가 중 오류가 발생했습니다.', 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '댓글 등록';
+        });
+};
+
+// 업무 변경 이력 추가
+function addWorkHistory(workId, action, details, changes = null) {
+    if (!currentUser) return;
+    
+    const historyData = {
+        action: action,
+        details: details,
+        changes: changes,
+        userId: userId,
+        userName: currentUser.displayName || null,
+        userEmail: currentUser.email,
+        createdAt: new Date().toISOString(),
+        workId: workId
+    };
+    
+    const historyRef = ref(database, `work-history/${workId}`);
+    const newHistoryRef = push(historyRef);
+    
+    set(newHistoryRef, historyData)
+        .then(() => {
+            console.log('✅ 업무 이력 추가 성공:', action);
+        })
+        .catch((error) => {
+            console.error('❌ 업무 이력 추가 실패:', error);
+        });
+}
+
+// 시간 포맷팅
+function formatCommentTime(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) {
+        return '방금 전';
+    } else if (diffInSeconds < 3600) {
+        return `${Math.floor(diffInSeconds / 60)}분 전`;
+    } else if (diffInSeconds < 86400) {
+        return `${Math.floor(diffInSeconds / 3600)}시간 전`;
+    } else if (diffInSeconds < 604800) {
+        return `${Math.floor(diffInSeconds / 86400)}일 전`;
+    } else {
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+}
+
+// HTML 이스케이프
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 // CSV 내보내기
 window.exportToCSV = function() {
@@ -875,10 +1147,182 @@ function loadSharedCalendarEvents() {
                 });
             });
         }
+        updateCreatorFilter(); // 등록자 필터 업데이트
         renderMainCalendar();
         updateCalendarStats();
     });
 }
+
+// 필터링 변수
+let calendarFilters = {
+    creator: '',
+    type: '',
+    dateRange: ''
+};
+
+let filteredCalendarEvents = [];
+
+// 필터링된 이벤트 반환
+function getFilteredEvents() {
+    let events = [...sharedCalendarEvents];
+    
+    // 등록자별 필터
+    if (calendarFilters.creator) {
+        events = events.filter(event => 
+            event.createdByName === calendarFilters.creator || 
+            event.createdByEmail === calendarFilters.creator
+        );
+    }
+    
+    // 일정 유형별 필터
+    if (calendarFilters.type) {
+        events = events.filter(event => event.type === calendarFilters.type);
+    }
+    
+    // 날짜 범위 필터
+    if (calendarFilters.dateRange) {
+        const today = new Date();
+        const koreaToday = new Date(today.getTime() + (9 * 60 * 60 * 1000)); // UTC+9
+        const todayStr = koreaToday.toISOString().split('T')[0];
+        
+        switch (calendarFilters.dateRange) {
+            case 'today':
+                events = events.filter(event => 
+                    event.startDate === todayStr || 
+                    (event.endDate && todayStr >= event.startDate && todayStr <= event.endDate)
+                );
+                break;
+            case 'this-week':
+                const startOfWeek = new Date(koreaToday);
+                startOfWeek.setDate(koreaToday.getDate() - koreaToday.getDay());
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                
+                const weekStart = startOfWeek.toISOString().split('T')[0];
+                const weekEnd = endOfWeek.toISOString().split('T')[0];
+                
+                events = events.filter(event => 
+                    (event.startDate >= weekStart && event.startDate <= weekEnd) ||
+                    (event.endDate && event.endDate >= weekStart && event.startDate <= weekEnd)
+                );
+                break;
+            case 'this-month':
+                const year = koreaToday.getFullYear();
+                const month = koreaToday.getMonth();
+                const monthStart = new Date(year, month, 1).toISOString().split('T')[0];
+                const monthEnd = new Date(year, month + 1, 0).toISOString().split('T')[0];
+                
+                events = events.filter(event => 
+                    (event.startDate >= monthStart && event.startDate <= monthEnd) ||
+                    (event.endDate && event.endDate >= monthStart && event.startDate <= monthEnd)
+                );
+                break;
+            case 'next-week':
+                const nextWeekStart = new Date(koreaToday);
+                nextWeekStart.setDate(koreaToday.getDate() + (7 - koreaToday.getDay()));
+                const nextWeekEnd = new Date(nextWeekStart);
+                nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+                
+                const nextStart = nextWeekStart.toISOString().split('T')[0];
+                const nextEnd = nextWeekEnd.toISOString().split('T')[0];
+                
+                events = events.filter(event => 
+                    (event.startDate >= nextStart && event.startDate <= nextEnd) ||
+                    (event.endDate && event.endDate >= nextStart && event.startDate <= nextEnd)
+                );
+                break;
+        }
+    }
+    
+    return events;
+}
+
+// 등록자 목록 업데이트
+function updateCreatorFilter() {
+    const creatorFilter = document.getElementById('creator-filter');
+    if (!creatorFilter) return;
+    
+    const creators = [...new Set(sharedCalendarEvents.map(event => event.createdByName || event.createdByEmail).filter(Boolean))];
+    
+    // 기존 옵션 제거 (첫 번째 "모든 등록자" 옵션 제외)
+    while (creatorFilter.children.length > 1) {
+        creatorFilter.removeChild(creatorFilter.lastChild);
+    }
+    
+    // 새로운 등록자 옵션 추가
+    creators.forEach(creator => {
+        const option = document.createElement('option');
+        option.value = creator;
+        option.textContent = creator;
+        creatorFilter.appendChild(option);
+    });
+}
+
+// 필터 적용
+window.applyCalendarFilters = function() {
+    console.log('🔍 필터 적용 중...');
+    
+    // 필터 값 읽기
+    const creatorFilter = document.getElementById('creator-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const dateFilter = document.getElementById('date-filter');
+    
+    calendarFilters.creator = creatorFilter ? creatorFilter.value : '';
+    calendarFilters.type = typeFilter ? typeFilter.value : '';
+    calendarFilters.dateRange = dateFilter ? dateFilter.value : '';
+    
+    console.log('적용된 필터:', calendarFilters);
+    
+    // 필터링된 이벤트 업데이트
+    filteredCalendarEvents = getFilteredEvents();
+    
+    console.log(`전체 이벤트: ${sharedCalendarEvents.length}, 필터링된 이벤트: ${filteredCalendarEvents.length}`);
+    
+    // 캘린더 다시 렌더링
+    renderMainCalendar();
+    updateCalendarStats();
+};
+
+// 필터 초기화
+window.resetCalendarFilters = function() {
+    console.log('🔄 필터 초기화');
+    
+    calendarFilters = {
+        creator: '',
+        type: '',
+        dateRange: ''
+    };
+    
+    // UI 초기화
+    const creatorFilter = document.getElementById('creator-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const dateFilter = document.getElementById('date-filter');
+    
+    if (creatorFilter) creatorFilter.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (dateFilter) dateFilter.value = '';
+    
+    // 필터링 해제하고 캘린더 재렌더링
+    filteredCalendarEvents = [];
+    renderMainCalendar();
+    updateCalendarStats();
+};
+
+// 필터 패널 토글
+window.toggleFilterPanel = function() {
+    const filterPanel = document.querySelector('.calendar-filters');
+    const toggleBtn = document.querySelector('.btn-filter-toggle');
+    
+    if (filterPanel && toggleBtn) {
+        filterPanel.classList.toggle('collapsed');
+        
+        if (filterPanel.classList.contains('collapsed')) {
+            toggleBtn.innerHTML = '🔽 필터';
+        } else {
+            toggleBtn.innerHTML = '🔼 필터';
+        }
+    }
+};
 
 // 메인 캘린더 렌더링 (한국 시간 기준으로 수정)
 function renderMainCalendar() {
@@ -931,8 +1375,9 @@ function renderMainCalendar() {
             dayElement.classList.add('today');
         }
         
-        // 해당 날짜의 이벤트들 표시
-        const dayEvents = sharedCalendarEvents.filter(event => {
+        // 해당 날짜의 이벤트들 표시 (필터링 적용)
+        const eventsToShow = filteredCalendarEvents.length > 0 ? filteredCalendarEvents : sharedCalendarEvents;
+        const dayEvents = eventsToShow.filter(event => {
             return event.startDate === dateStr || 
                    (event.endDate && dateStr >= event.startDate && dateStr <= event.endDate);
         });
@@ -1072,8 +1517,44 @@ function showEventDetail(event) {
     document.getElementById('event-detail-participants').textContent = event.participants || '-';
     document.getElementById('event-detail-desc').textContent = event.description || '상세 설명이 없습니다.';
     
+    // 수정/삭제 버튼 권한 확인 및 이벤트 리스너 설정
+    const editBtn = document.querySelector('.btn-edit-event');
+    const deleteBtn = document.querySelector('.btn-delete-event');
+    
+    if (currentUser && event.createdBy === userId) {
+        // 본인이 작성한 일정인 경우에만 수정/삭제 가능
+        if (editBtn) {
+            editBtn.style.display = 'inline-block';
+            // 기존 이벤트 리스너 제거 후 새로 추가
+            editBtn.replaceWith(editBtn.cloneNode(true));
+            const newEditBtn = document.querySelector('.btn-edit-event');
+            newEditBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🔧 수정 버튼 클릭됨 (addEventListener)');
+                editEvent();
+            });
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.style.display = 'inline-block';
+            // 기존 이벤트 리스너 제거 후 새로 추가
+            deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+            const newDeleteBtn = document.querySelector('.btn-delete-event');
+            newDeleteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('🗑️ 삭제 버튼 클릭됨 (addEventListener)');
+                deleteEvent();
+            });
+        }
+    } else {
+        // 다른 사람이 작성한 일정인 경우 버튼 숨김
+        if (editBtn) editBtn.style.display = 'none';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+    }
+    
     document.getElementById('event-detail-modal').classList.add('show');
     console.log('selectedEvent 저장됨:', selectedEvent);
+    console.log('현재 사용자:', userId, '일정 작성자:', event.createdBy);
 }
 
 // 이벤트 상세보기 모달 숨기기
@@ -1084,35 +1565,61 @@ window.hideEventDetailModal = function() {
 
 // 이벤트 수정
 window.editEvent = function() {
-    console.log('editEvent 함수 호출됨');
-    console.log('selectedEvent:', selectedEvent);
+    console.log('🔧 editEvent 함수 호출됨');
+    console.log('📋 selectedEvent:', selectedEvent);
     
     if (!selectedEvent) {
-        console.error('selectedEvent가 없습니다');
+        console.error('❌ selectedEvent가 없습니다');
         showMessage('일정 정보를 찾을 수 없습니다.', 'error');
         return;
     }
     
-    hideEventDetailModal();
+    if (!currentUser) {
+        console.error('❌ 로그인이 필요합니다');
+        showMessage('로그인이 필요합니다.', 'error');
+        return;
+    }
     
-    // 폼에 기존 데이터 채우기
-    document.getElementById('event-modal-title').textContent = '일정 수정';
-    document.getElementById('event-title').value = selectedEvent.title || '';
-    document.getElementById('event-type').value = selectedEvent.type || '업무';
-    document.getElementById('event-start-date').value = selectedEvent.startDate || '';
-    document.getElementById('event-start-time').value = selectedEvent.startTime || '';
-    document.getElementById('event-end-date').value = selectedEvent.endDate || selectedEvent.startDate || '';
-    document.getElementById('event-end-time').value = selectedEvent.endTime || '';
-    document.getElementById('event-description').value = selectedEvent.description || '';
-    document.getElementById('event-participants').value = selectedEvent.participants || '';
+    if (selectedEvent.createdBy !== userId) {
+        console.error('❌ 권한이 없습니다', '작성자:', selectedEvent.createdBy, '현재사용자:', userId);
+        showMessage('본인이 작성한 일정만 수정할 수 있습니다.', 'error');
+        return;
+    }
     
-    // 색상 선택
-    const eventColor = selectedEvent.color || '#e53e3e';
-    const eventBg = selectedEvent.backgroundColor || '#fed7d7';
-    selectEventColor(eventColor, eventBg);
-    
-    document.getElementById('event-modal').classList.add('show');
-    console.log('일정 수정 모달 표시됨');
+    try {
+        hideEventDetailModal();
+        
+        // 폼에 기존 데이터 채우기
+        console.log('📝 폼 데이터 설정 중...');
+        document.getElementById('event-modal-title').textContent = '일정 수정';
+        document.getElementById('event-title').value = selectedEvent.title || '';
+        document.getElementById('event-type').value = selectedEvent.type || '업무';
+        document.getElementById('event-start-date').value = selectedEvent.startDate || '';
+        document.getElementById('event-start-time').value = selectedEvent.startTime || '';
+        document.getElementById('event-end-date').value = selectedEvent.endDate || selectedEvent.startDate || '';
+        document.getElementById('event-end-time').value = selectedEvent.endTime || '';
+        document.getElementById('event-description').value = selectedEvent.description || '';
+        document.getElementById('event-participants').value = selectedEvent.participants || '';
+        
+        // 색상 선택
+        const eventColor = selectedEvent.color || '#e53e3e';
+        const eventBg = selectedEvent.backgroundColor || '#fed7d7';
+        console.log('🎨 색상 설정:', eventColor, eventBg);
+        selectEventColor(eventColor, eventBg);
+        
+        // 모달 표시
+        const modal = document.getElementById('event-modal');
+        if (modal) {
+            modal.classList.add('show');
+            console.log('✅ 일정 수정 모달 표시됨');
+        } else {
+            console.error('❌ 모달 요소를 찾을 수 없습니다');
+        }
+        
+    } catch (error) {
+        console.error('❌ editEvent 오류:', error);
+        showMessage('일정 수정 중 오류가 발생했습니다.', 'error');
+    }
 };
 
 // 이벤트 삭제
@@ -1654,12 +2161,35 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
             const workRef = ref(database, `shared-audit-tasks/${editId}`);
             const existingData = sharedAuditTasks.find(task => task.id === editId);
             
+            // 변경사항 감지
+            const changes = {};
+            const fieldsToCheck = ['category', 'workName', 'targetDept', 'responsiblePerson', 'status', 'startDate', 'endDate', 'description', 'keyIssues'];
+            
+            fieldsToCheck.forEach(field => {
+                const oldValue = existingData[field] || '';
+                const newValue = formData[field] || '';
+                if (oldValue !== newValue) {
+                    changes[field] = {
+                        from: oldValue,
+                        to: newValue
+                    };
+                }
+            });
+            
+            // 업무 데이터 업데이트
             await set(workRef, { 
                 ...existingData, 
                 ...formData,
                 updatedBy: userId,
                 updatedByEmail: currentUser.email
             });
+            
+            // 변경사항이 있으면 이력 추가
+            if (Object.keys(changes).length > 0) {
+                const changeDetails = Object.keys(changes).map(field => getFieldDisplayName(field)).join(', ');
+                addWorkHistory(editId, '업무 수정', `${changeDetails} 항목을 수정했습니다.`, changes);
+            }
+            
             showMessage('업무가 성공적으로 수정되었습니다! ✏️', 'success');
             
             // 편집 모드 해제
@@ -1668,12 +2198,17 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
         } else {
             // 새 업무 등록
             const tasksRef = ref(database, 'shared-audit-tasks');
-            await push(tasksRef, {
+            const newWorkRef = await push(tasksRef, {
                 ...formData,
                 createdBy: userId,
                 createdByEmail: currentUser.email,
                 createdAt: new Date().toISOString()
             });
+            
+            // 업무 등록 이력 추가
+            const newWorkId = newWorkRef.key;
+            addWorkHistory(newWorkId, '업무 등록', `새로운 감사업무 "${formData.workName}"을(를) 등록했습니다.`);
+            
             showMessage('업무가 성공적으로 등록되었습니다! 🎉', 'success');
         }
         
@@ -1717,6 +2252,7 @@ document.getElementById('search-modal').addEventListener('click', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     const eventModal = document.getElementById('event-modal');
     const eventDetailModal = document.getElementById('event-detail-modal');
+    const commentModal = document.getElementById('comment-modal');
     
     if (eventModal) {
         eventModal.addEventListener('click', function(e) {
@@ -1730,6 +2266,25 @@ document.addEventListener('DOMContentLoaded', function() {
         eventDetailModal.addEventListener('click', function(e) {
             if (e.target === this) {
                 hideEventDetailModal();
+            }
+        });
+    }
+    
+    if (commentModal) {
+        commentModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideCommentModal();
+            }
+        });
+    }
+    
+    // 댓글 입력창에서 Ctrl+Enter로 댓글 등록
+    const commentInput = document.getElementById('comment-input');
+    if (commentInput) {
+        commentInput.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                addComment();
             }
         });
     }
