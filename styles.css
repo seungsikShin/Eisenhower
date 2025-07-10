@@ -3928,46 +3928,45 @@ h1, h2, h3, h4 {
   overflow: hidden;
 }
 .stats-summary {
-  min-width: 160px;
-  max-width: 180px;
-  padding: 24px 8px 24px 16px;
+  min-width: 240px;
+  max-width: 280px;
+  padding: 32px 18px 32px 32px;
 }
 .stats-section {
-  gap: 10px;
+  gap: 18px;
 }
 .stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  display: block;
+  text-align: left;
   padding: 10px 0 10px 0;
+  align-items: unset;
+  justify-content: unset;
 }
 .stat-card h3 {
   font-size: 1rem;
-  color: #444;
-  font-weight: 600;
-  margin-bottom: 4px;
-  text-align: center;
+  color: #374151;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-align: left;
 }
 .stat-card .count {
   font-size: 2rem;
-  font-weight: 700;
-  color: #2d3748;
-  text-align: center;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: bold;
+  color: #2563eb;
+  text-align: left;
+  width: auto;
+  display: inline;
+  align-items: unset;
+  justify-content: unset;
 }
 
-/* ===== 본문 텍스트 더 진하게 ===== */
+/* ===== 본문 텍스트 진하게 했던 부분 원복 ===== */
 .charts-section, .chart-card, .work-list-section, .main-calendar-container, .calendar-control-section, .event-modal-content, .event-detail-content, .work-quickview-content, .comment-modal-content, .quadrant-modal-content {
-  color: #222 !important;
-  font-weight: 500 !important;
+  color: inherit !important;
+  font-weight: inherit !important;
 }
 
 body, .gowun-batang-regular {
-  color: #222;
-  font-weight: 500;
+  color: #2d3748;
+  font-weight: 400;
 }
