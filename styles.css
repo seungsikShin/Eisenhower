@@ -7,7 +7,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #e8f4f8 0%, #d6e9f0 50%, #c4dde8 100%);
+    background: #fafafa;
     min-height: 100vh;
     color: #2d3748;
 }
@@ -23,14 +23,15 @@ body {
 
 .auth-card {
     background: white;
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     max-width: 400px;
     width: 100%;
     text-align: center;
     position: relative;
     overflow: hidden;
+    border: 1px solid #e5e7eb;
 }
 
 .auth-card::before {
@@ -39,9 +40,9 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 6px;
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-    border-radius: 24px 24px 0 0;
+    height: 3px;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    border-radius: 16px 16px 0 0;
 }
 
 .auth-logo {
@@ -52,13 +53,13 @@ body {
 .auth-title {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #1a202c;
+    color: #111827;
     margin-bottom: 10px;
 }
 
 .auth-subtitle {
     font-size: 1.1rem;
-    color: #4a5568;
+    color: #6b7280;
     margin-bottom: 30px;
     font-weight: 500;
 }
@@ -76,41 +77,41 @@ body {
 .form-input {
     width: 100%;
     padding: 15px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
-    background: #f7fafc;
+    background: #f9fafb;
 }
 
 .form-input:focus {
-    border-color: #4299e1;
+    border-color: #374151;
     background: white;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
 }
 
 .form-input::placeholder {
-    color: #a0aec0;
+    color: #9ca3af;
 }
 
 .auth-btn {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
     border: none;
     padding: 15px 24px;
-    border-radius: 16px;
+    border-radius: 12px;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+    box-shadow: 0 2px 8px rgba(55, 65, 81, 0.15);
     margin-top: 10px;
 }
 
 .auth-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(66, 153, 225, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
 .auth-btn:disabled {
@@ -122,20 +123,20 @@ body {
 .auth-switch {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e5e7eb;
 }
 
 .auth-switch-text {
-    color: #4a5568;
+    color: #6b7280;
     margin-bottom: 10px;
 }
 
 .auth-switch-btn {
     background: transparent;
-    color: #4299e1;
-    border: 2px solid #4299e1;
+    color: #374151;
+    border: 1px solid #374151;
     padding: 10px 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -143,31 +144,31 @@ body {
 }
 
 .auth-switch-btn:hover {
-    background: #4299e1;
+    background: #374151;
     color: white;
     transform: translateY(-1px);
 }
 
 .error-message {
-    background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
     padding: 12px 16px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.9rem;
     margin-bottom: 15px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
 }
 
 .success-message {
-    background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     padding: 12px 16px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.9rem;
     margin-bottom: 15px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
 }
 
 .loading-spinner {
@@ -207,20 +208,21 @@ body {
     align-items: center;
     background: white;
     padding: 20px 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     margin-bottom: 30px;
+    border: 1px solid #f3f4f6;
 }
 
 .header-left h1 {
     font-size: 2rem;
     font-weight: 800;
-    color: #1a202c;
+    color: #111827;
     margin-bottom: 5px;
 }
 
 .header-left p {
-    color: #4a5568;
+    color: #6b7280;
     font-size: 1.1rem;
 }
 
@@ -232,54 +234,56 @@ body {
 
 .nav-tabs {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .nav-tab {
     padding: 12px 24px;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .nav-tab.active {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
-    box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+    box-shadow: 0 2px 8px rgba(55, 65, 81, 0.15);
 }
 
 .nav-tab:not(.active) {
-    background: #f7fafc;
-    color: #4a5568;
+    background: #f9fafb;
+    color: #6b7280;
 }
 
 .nav-tab:not(.active):hover {
-    background: #e2e8f0;
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .user-info {
     display: flex;
     align-items: center;
     gap: 15px;
-    background: #f7fafc;
+    background: #f9fafb;
     padding: 10px 20px;
-    border-radius: 20px;
+    border-radius: 12px;
+    border: 1px solid #f3f4f6;
 }
 
 .user-email {
     font-size: 0.9rem;
-    color: #4a5568;
+    color: #6b7280;
     font-weight: 500;
 }
 
 .logout-btn {
-    background: #e53e3e;
+    background: #6b7280;
     color: white;
     border: none;
     padding: 8px 16px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -287,7 +291,7 @@ body {
 }
 
 .logout-btn:hover {
-    background: #c53030;
+    background: #4b5563;
     transform: translateY(-1px);
 }
 
@@ -321,9 +325,10 @@ body {
 .calendar-control-section {
     background: white;
     padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     margin-bottom: 30px;
+    border: 1px solid #f3f4f6;
 }
 
 .calendar-header-controls {
@@ -340,7 +345,7 @@ body {
 }
 
 .calendar-navigation h2 {
-    color: #1a202c;
+    color: #111827;
     font-size: 1.8rem;
     font-weight: 700;
     margin: 0;
@@ -354,35 +359,35 @@ body {
 }
 
 .btn-today {
-    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
     border: none;
     padding: 12px 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-today:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(159, 122, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.2);
 }
 
 .btn-add-event {
-    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
     border: none;
     padding: 12px 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-add-event:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(56, 161, 105, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
 /* 색상 범례 */
@@ -392,8 +397,9 @@ body {
     gap: 15px;
     justify-content: center;
     padding: 15px;
-    background: #f8f9fa;
-    border-radius: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
 }
 
 .color-legend .legend-item {
@@ -401,7 +407,7 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 0.85rem;
-    color: #4a5568;
+    color: #6b7280;
 }
 
 .color-legend .color-dot {
@@ -414,9 +420,10 @@ body {
 /* 메인 캘린더 컨테이너 */
 .main-calendar-container {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+    border: 1px solid #f3f4f6;
 }
 
 .calendar-grid-container {
@@ -435,18 +442,18 @@ body {
     text-align: center;
     padding: 15px 5px;
     font-weight: 700;
-    color: #4a5568;
+    color: #6b7280;
     font-size: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
 }
 
 .weekday:first-child {
-    color: #e53e3e; /* 일요일 */
+    color: #6b7280; /* 일요일 */
 }
 
 .weekday:last-child {
-    color: #3182ce; /* 토요일 */
+    color: #374151; /* 토요일 */
 }
 
 /* 캘린더 날짜 그리드 */
@@ -459,8 +466,8 @@ body {
 .calendar-day {
     min-height: 120px;
     padding: 8px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
     background: white;
@@ -470,43 +477,43 @@ body {
 }
 
 .calendar-day:hover {
-    background: #f7fafc;
-    border-color: #4299e1;
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: #f9fafb;
+    border-color: #374151;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
-    border-color: #38a169;
-    box-shadow: 0 0 0 2px rgba(56, 161, 105, 0.2);
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-color: #374151;
+    box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.1);
 }
 
 .calendar-day.other-month {
-    background: #f9f9f9;
-    color: #a0aec0;
+    background: #fafafa;
+    color: #9ca3af;
 }
 
 .calendar-day.other-month:hover {
-    background: #f1f5f9;
+    background: #f5f5f5;
 }
 
 /* 날짜 숫자 */
 .day-number {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #2d3748;
+    color: #374151;
     margin-bottom: 5px;
     text-align: center;
 }
 
 .calendar-day.today .day-number {
-    color: #38a169;
+    color: #111827;
     font-weight: 800;
 }
 
 .calendar-day.other-month .day-number {
-    color: #cbd5e0;
+    color: #d1d5db;
 }
 
 /* 날짜별 이벤트 */
@@ -520,7 +527,7 @@ body {
 
 .day-event {
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: 3px;
     font-size: 0.75rem;
     font-weight: 500;
     text-overflow: ellipsis;
@@ -528,21 +535,21 @@ body {
     white-space: nowrap;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .day-event:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .day-event.more-events {
-    background: #e2e8f0 !important;
-    color: #4a5568 !important;
+    background: #e5e7eb !important;
+    color: #6b7280 !important;
     text-align: center;
     font-weight: 600;
-    border: 1px dashed #a0aec0;
+    border: 1px dashed #9ca3af;
 }
 
 /* ===== 일정 추가/편집 모달 ===== */
@@ -553,7 +560,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.4);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -565,13 +572,14 @@ body {
 
 .event-modal-content {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 30px;
     max-width: 600px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid #f3f4f6;
 }
 
 .event-modal-header {
@@ -580,11 +588,11 @@ body {
     align-items: center;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .event-modal-header h3 {
-    color: #1a202c;
+    color: #111827;
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
@@ -615,19 +623,19 @@ body {
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 3px solid transparent;
+    border: 2px solid transparent;
     position: relative;
 }
 
 .color-option:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .color-option.active {
-    border-color: #2d3748;
-    transform: scale(1.15);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    border-color: #374151;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .color-option.active::after {
@@ -651,19 +659,19 @@ body {
 }
 
 .btn-save-event {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-save-event:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(66, 153, 225, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
 /* ===== 일정 상세보기 모달 ===== */
@@ -674,7 +682,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.4);
     z-index: 1001;
     align-items: center;
     justify-content: center;
@@ -686,21 +694,22 @@ body {
 
 .event-detail-content {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 0;
     max-width: 500px;
     width: 90%;
     max-height: 80vh;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid #f3f4f6;
 }
 
 .event-detail-header {
     display: flex;
     align-items: center;
     padding: 25px 30px 20px;
-    border-bottom: 2px solid #e2e8f0;
-    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
 }
 
 .event-detail-color {
@@ -708,12 +717,12 @@ body {
     height: 20px;
     border-radius: 50%;
     margin-right: 15px;
-    border: 2px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.1);
 }
 
 .event-detail-header h3 {
     flex: 1;
-    color: #1a202c;
+    color: #111827;
     font-size: 1.3rem;
     font-weight: 700;
     margin: 0;
@@ -735,31 +744,31 @@ body {
 
 .info-label {
     font-weight: 600;
-    color: #4a5568;
+    color: #6b7280;
     min-width: 80px;
     margin-right: 10px;
 }
 
 .info-item span:last-child {
-    color: #2d3748;
+    color: #374151;
     flex: 1;
 }
 
 .event-detail-description {
     margin-bottom: 25px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e5e7eb;
 }
 
 .event-detail-description h4 {
-    color: #1a202c;
+    color: #111827;
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 10px;
 }
 
 .event-detail-description p {
-    color: #4a5568;
+    color: #6b7280;
     line-height: 1.6;
     margin: 0;
 }
@@ -771,34 +780,34 @@ body {
 }
 
 .btn-edit-event {
-    background: #ed8936;
+    background: #6b7280;
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-edit-event:hover {
-    background: #dd6b20;
+    background: #4b5563;
     transform: translateY(-1px);
 }
 
 .btn-delete-event {
-    background: #e53e3e;
+    background: #ef4444;
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-delete-event:hover {
-    background: #c53030;
+    background: #dc2626;
     transform: translateY(-1px);
 }
 
@@ -935,14 +944,14 @@ body {
 }
 
 /* ===== 일정 유형별 기본 색상 ===== */
-.event-type-업무 { background: #bee3f8; color: #1e40af; }
-.event-type-연차 { background: #fed7d7; color: #c53030; }
-.event-type-휴가 { background: #e2e8f0; color: #4a5568; }
-.event-type-회식 { background: #fbd38d; color: #9c4221; }
-.event-type-교육 { background: #d6bcfa; color: #553c9a; }
-.event-type-출장 { background: #b2f5ea; color: #234e52; }
-.event-type-개인 { background: #fed7e2; color: #97266d; }
-.event-type-기타 { background: #c6f6d5; color: #276749; }
+.event-type-업무 { background: #f3f4f6; color: #374151; }
+.event-type-연차 { background: #e5e7eb; color: #6b7280; }
+.event-type-휴가 { background: #f9fafb; color: #4b5563; }
+.event-type-회식 { background: #f5f5f5; color: #374151; }
+.event-type-교육 { background: #e5e7eb; color: #1f2937; }
+.event-type-출장 { background: #f0f0f0; color: #374151; }
+.event-type-개인 { background: #fafafa; color: #6b7280; }
+.event-type-기타 { background: #f8f9fa; color: #4b5563; }
 
 /* ===== 스크롤바 스타일링 ===== */
 .calendar-days::-webkit-scrollbar,
@@ -982,19 +991,20 @@ body {
 .stat-card {
     background: white;
     padding: 25px;
-    border-radius: 20px;
+    border-radius: 16px;
     text-align: center;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     transition: all 0.3s ease;
+    border: 1px solid #f3f4f6;
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
 .stat-card h3 {
-    color: #4a5568;
+    color: #6b7280;
     margin-bottom: 10px;
     font-size: 1rem;
 }
@@ -1002,16 +1012,17 @@ body {
 .stat-card .count {
     font-size: 2rem;
     font-weight: bold;
-    color: #2563eb;
+    color: #374151;
 }
 
 /* ===== 업무 목록 섹션 ===== */
 .work-list-section {
     background: white;
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     margin-bottom: 20px;
+    border: 1px solid #f3f4f6;
 }
 
 .work-list-header {
@@ -1022,7 +1033,7 @@ body {
 }
 
 .work-list-header h2 {
-    color: #1a202c;
+    color: #111827;
     font-size: 1.5rem;
     font-weight: 700;
 }
@@ -1033,35 +1044,35 @@ body {
 }
 
 .btn-new {
-    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-new:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(56, 161, 105, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
 .btn-csv {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-csv:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.2);
 }
 
 /* ===== 상태 필터 ===== */
@@ -1074,22 +1085,22 @@ body {
 
 .filter-btn {
     padding: 8px 16px;
-    border: 2px solid #e2e8f0;
+    border: 1px solid #e5e7eb;
     background: white;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 500;
 }
 
 .filter-btn:hover {
-    background: #f8f9fa;
+    background: #f9fafb;
 }
 
 .filter-btn.active {
-    background: #2563eb;
+    background: #374151;
     color: white;
-    border-color: #2563eb;
+    border-color: #374151;
 }
 
 /* ===== 업무 테이블 ===== */
@@ -1103,17 +1114,17 @@ body {
 .work-table td {
     padding: 15px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .work-table th {
-    background: #f8f9fa;
+    background: #f9fafb;
     font-weight: 600;
-    color: #4a5568;
+    color: #6b7280;
 }
 
 .work-table tr:hover {
-    background: #f7fafc;
+    background: #f9fafb;
 }
 
 .status-badge {
@@ -1138,7 +1149,7 @@ body {
 .btn-import, .btn-edit, .btn-delete {
     padding: 6px 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1146,17 +1157,17 @@ body {
 }
 
 .btn-import {
-    background: #4299e1;
+    background: #374151;
     color: white;
 }
 
 .btn-edit {
-    background: #ed8936;
+    background: #6b7280;
     color: white;
 }
 
 .btn-delete {
-    background: #e53e3e;
+    background: #ef4444;
     color: white;
 }
 
@@ -1168,10 +1179,11 @@ body {
 .work-form {
     background: white;
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     margin-bottom: 20px;
     display: none;
+    border: 1px solid #f3f4f6;
 }
 
 .work-form.show {
@@ -1179,7 +1191,7 @@ body {
 }
 
 .work-form h3 {
-    color: #1a202c;
+    color: #111827;
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 25px;
@@ -1200,22 +1212,22 @@ body {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #4a5568;
+    color: #6b7280;
 }
 
 .form-select, .form-textarea {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-    border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    border-color: #374151;
+    box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
 }
 
 .form-textarea {
@@ -1233,7 +1245,7 @@ body {
 .btn-cancel, .btn-save {
     padding: 12px 24px;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1245,12 +1257,12 @@ body {
 }
 
 .btn-save {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
 }
 
 .btn-cancel:hover, .btn-save:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 /* ===== 매트릭스 컨트롤 ===== */
@@ -1269,17 +1281,18 @@ body {
 .stats-card,
 .quadrant-stats {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 25px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     transition: all 0.3s ease;
+    border: 1px solid #f3f4f6;
 }
 
 .calendar-overview:hover,
 .stats-card:hover,
 .quadrant-stats:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
 .calendar-overview-header {
@@ -1290,7 +1303,7 @@ body {
 }
 
 .calendar-overview-header h3 {
-    color: #1a202c;
+    color: #111827;
     font-weight: 700;
 }
 
@@ -1300,18 +1313,18 @@ body {
 }
 
 .nav-btn {
-    background: #4299e1;
+    background: #374151;
     color: white;
     border: none;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .nav-btn:hover {
-    background: #3182ce;
+    background: #1f2937;
     transform: scale(1.05);
 }
 
@@ -1333,7 +1346,7 @@ body {
     padding: 5px;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #718096;
+    color: #6b7280;
 }
 
 .mini-day {
@@ -1349,24 +1362,24 @@ body {
 }
 
 .mini-day:hover {
-    background: #e2e8f0;
-    transform: scale(1.1);
+    background: #e5e7eb;
+    transform: scale(1.05);
 }
 
 .mini-day.today {
-    background: #4299e1 !important;
+    background: #374151 !important;
     color: white;
     font-weight: bold;
 }
 
 .mini-day.selected {
-    background: #2d3748;
+    background: #1f2937;
     color: white;
 }
 
 .mini-day.has-data {
-    background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
-    color: white;
+    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+    color: #374151;
 }
 
 .mini-day.has-data::after {
@@ -1375,11 +1388,11 @@ body {
     bottom: 2px;
     right: 2px;
     font-size: 0.6rem;
-    color: #38a169;
+    color: #6b7280;
 }
 
 .mini-day.other-month {
-    color: #cbd5e0;
+    color: #d1d5db;
 }
 
 .calendar-legend {
@@ -1400,9 +1413,9 @@ body {
     border-radius: 50%;
 }
 
-.legend-dot.today { background: #4299e1; }
-.legend-dot.has-data { background: linear-gradient(135deg, #68d391 0%, #38a169 100%); }
-.legend-dot.selected { background: #2d3748; }
+.legend-dot.today { background: #374151; }
+.legend-dot.has-data { background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%); }
+.legend-dot.selected { background: #1f2937; }
 
 /* ===== 통계 카드 스타일 ===== */
 .stats-header {
@@ -1412,7 +1425,7 @@ body {
 .stats-header h3 {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #1a202c;
+    color: #111827;
     margin: 0;
 }
 
@@ -1436,13 +1449,13 @@ body {
 
 .progress-bg {
     fill: none;
-    stroke: #e2e8f0;
+    stroke: #e5e7eb;
     stroke-width: 6;
 }
 
 .progress-bar {
     fill: none;
-    stroke: #4299e1;
+    stroke: #374151;
     stroke-width: 6;
     stroke-linecap: round;
     stroke-dasharray: 220;
@@ -1454,7 +1467,7 @@ body {
     position: absolute;
     font-size: 1.2rem;
     font-weight: bold;
-    color: #2d3748;
+    color: #374151;
 }
 
 .stats-details {
@@ -1466,7 +1479,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 8px 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .stat-item:last-child {
@@ -1475,20 +1488,20 @@ body {
 
 .stat-label {
     font-size: 0.9rem;
-    color: #4a5568;
+    color: #6b7280;
 }
 
 .stat-value {
     font-weight: bold;
-    color: #2d3748;
+    color: #374151;
 }
 
 .stat-value.completed {
-    color: #38a169;
+    color: #10b981;
 }
 
 .stat-value.pending {
-    color: #ed8936;
+    color: #6b7280;
 }
 
 /* ===== 사분면별 현황 스타일 ===== */
@@ -1503,18 +1516,18 @@ body {
     align-items: center;
     gap: 12px;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     transition: all 0.3s ease;
 }
 
 .breakdown-item:hover {
-    transform: translateX(5px);
+    transform: translateX(3px);
 }
 
-.breakdown-item.q1 { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
-.breakdown-item.q2 { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
-.breakdown-item.q3 { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
-.breakdown-item.q4 { background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); }
+.breakdown-item.q1 { background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); }
+.breakdown-item.q2 { background: linear-gradient(135deg, #f5f5f5 0%, #e5e7eb 100%); }
+.breakdown-item.q3 { background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%); }
+.breakdown-item.q4 { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); }
 
 .breakdown-icon {
     font-size: 1.5rem;
@@ -1529,14 +1542,14 @@ body {
 
 .breakdown-label {
     font-size: 0.9rem;
-    color: #4a5568;
+    color: #6b7280;
     font-weight: 500;
 }
 
 .breakdown-count {
     font-size: 1.1rem;
     font-weight: bold;
-    color: #2d3748;
+    color: #374151;
 }
 
 /* ===== 컨트롤 패널 스타일 ===== */
@@ -1558,18 +1571,19 @@ body {
 .search-input {
     width: 100%;
     padding: 15px 50px 15px 20px;
-    border: none;
-    border-radius: 25px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     background: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .search-input:focus {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+    border-color: #374151;
 }
 
 .search-btn {
@@ -1577,36 +1591,36 @@ body {
     right: 5px;
     top: 50%;
     transform: translateY(-50%);
-    background: #1a202c;
+    background: #374151;
     color: white;
     border: none;
     padding: 10px 20px;
-    border-radius: 20px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .search-btn:hover {
-    background: #2d3748;
+    background: #1f2937;
 }
 
 .calendar-btn {
-    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 20px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(159, 122, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.15);
 }
 
 .calendar-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(159, 122, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.2);
 }
 
 .date-container {
@@ -1616,36 +1630,37 @@ body {
 
 .date-input {
     padding: 12px 20px;
-    border: none;
-    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     background: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .date-input:focus {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+    border-color: #374151;
 }
 
 .save-btn {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 20px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+    box-shadow: 0 2px 8px rgba(55, 65, 81, 0.15);
 }
 
 .save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(66, 153, 225, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(55, 65, 81, 0.2);
 }
 
 /* ===== 모달 스타일 ===== */
@@ -1656,7 +1671,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.4);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -1668,13 +1683,14 @@ body {
 
 .calendar-content, .search-content, .quadrant-modal-content {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 30px;
     max-width: 600px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid #f3f4f6;
 }
 
 .calendar-header, .search-header {
@@ -1683,27 +1699,27 @@ body {
     align-items: center;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .calendar-header h3, .search-header h3 {
-    color: #1a202c;
+    color: #111827;
     font-weight: 700;
 }
 
 .close-btn {
-    background: #e53e3e;
+    background: #6b7280;
     color: white;
     border: none;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-    background: #c53030;
+    background: #4b5563;
     transform: scale(1.05);
 }
 
@@ -1734,23 +1750,23 @@ body {
 }
 
 .calendar-day:hover {
-    background: #e2e8f0;
-    transform: scale(1.05);
+    background: #e5e7eb;
+    transform: scale(1.02);
 }
 
 .calendar-day.today {
-    background: #4299e1 !important;
+    background: #374151 !important;
     color: white;
 }
 
 .calendar-day.selected {
-    background: #2d3748;
+    background: #1f2937;
     color: white;
 }
 
 .calendar-day.has-data {
-    background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
-    color: white;
+    background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+    color: #374151;
 }
 
 .calendar-day.has-data::after {
@@ -1759,11 +1775,11 @@ body {
     bottom: 2px;
     right: 4px;
     font-size: 0.6rem;
-    color: #38a169;
+    color: #6b7280;
 }
 
 .calendar-day.other-month {
-    color: #cbd5e0;
+    color: #d1d5db;
 }
 
 /* ===== 검색 결과 스타일 ===== */
@@ -1775,54 +1791,54 @@ body {
 .search-result-item {
     padding: 15px;
     margin-bottom: 10px;
-    background: #f7fafc;
-    border-radius: 12px;
-    border-left: 4px solid #4299e1;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid #374151;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .search-result-item:hover {
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transform: translateX(2px);
 }
 
 .search-result-date {
     font-size: 0.85rem;
-    color: #718096;
+    color: #6b7280;
     font-weight: 600;
     margin-bottom: 5px;
 }
 
 .search-result-task {
     font-size: 1rem;
-    color: #2d3748;
+    color: #374151;
     margin-bottom: 5px;
 }
 
 .search-result-quadrant {
     font-size: 0.8rem;
-    color: #4a5568;
+    color: #6b7280;
     font-style: italic;
 }
 
 .no-results {
     text-align: center;
     padding: 40px;
-    color: #718096;
+    color: #6b7280;
 }
 
 .loading {
     text-align: center;
     padding: 20px;
-    color: #718096;
+    color: #6b7280;
     font-style: italic;
 }
 
 /* ===== 사분면 선택 모달 ===== */
 .quadrant-modal-content h3 {
-    color: #1a202c;
+    color: #111827;
     font-weight: 700;
     margin-bottom: 20px;
     text-align: center;
@@ -1837,23 +1853,23 @@ body {
 
 .quadrant-option {
     padding: 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
 }
 
 .quadrant-option:hover {
-    border-color: #4299e1;
-    background: #f7fafc;
-    transform: translateY(-2px);
+    border-color: #374151;
+    background: #f9fafb;
+    transform: translateY(-1px);
 }
 
-.quadrant-option.q1:hover { border-color: #e53e3e; background: #fef2f2; }
-.quadrant-option.q2:hover { border-color: #38a169; background: #f0fdf4; }
-.quadrant-option.q3:hover { border-color: #ed8936; background: #fffbeb; }
-.quadrant-option.q4:hover { border-color: #718096; background: #f9fafb; }
+.quadrant-option.q1:hover { border-color: #6b7280; background: #f9fafb; }
+.quadrant-option.q2:hover { border-color: #4b5563; background: #f5f5f5; }
+.quadrant-option.q3:hover { border-color: #9ca3af; background: #fafafa; }
+.quadrant-option.q4:hover { border-color: #6b7280; background: #f8f9fa; }
 
 /* ===== 매트릭스 그리드 스타일 ===== */
 .matrix-grid {
@@ -1866,18 +1882,19 @@ body {
 
 .quadrant {
     background: white;
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 30px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
     min-height: 500px;
+    border: 1px solid #f3f4f6;
 }
 
 .quadrant:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
 .quadrant::before {
@@ -1886,14 +1903,14 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 6px;
-    border-radius: 24px 24px 0 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
 }
 
-.quadrant-1::before { background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%); }
-.quadrant-2::before { background: linear-gradient(135deg, #68d391 0%, #38a169 100%); }
-.quadrant-3::before { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); }
-.quadrant-4::before { background: linear-gradient(135deg, #a0aec0 0%, #718096 100%); }
+.quadrant-1::before { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
+.quadrant-2::before { background: linear-gradient(135deg, #374151 0%, #1f2937 100%); }
+.quadrant-3::before { background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); }
+.quadrant-4::before { background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%); }
 
 .quadrant-header {
     text-align: center;
@@ -1910,12 +1927,12 @@ body {
     font-size: 1.4rem;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #1a202c;
+    color: #111827;
 }
 
 .quadrant-subtitle {
     font-size: 0.95rem;
-    color: #718096;
+    color: #6b7280;
     font-weight: 500;
 }
 
@@ -1928,32 +1945,32 @@ body {
 .task-input {
     width: 100%;
     padding: 15px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
-    background: #f7fafc;
+    background: #f9fafb;
 }
 
 .task-input:focus {
-    border-color: #4299e1;
+    border-color: #374151;
     background: white;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
 }
 
-.quadrant-1 .task-input:focus { border-color: #e53e3e; box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1); }
-.quadrant-2 .task-input:focus { border-color: #38a169; box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1); }
-.quadrant-3 .task-input:focus { border-color: #ed8936; box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.1); }
-.quadrant-4 .task-input:focus { border-color: #718096; box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.1); }
+.quadrant-1 .task-input:focus { border-color: #6b7280; box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1); }
+.quadrant-2 .task-input:focus { border-color: #374151; box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1); }
+.quadrant-3 .task-input:focus { border-color: #9ca3af; box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1); }
+.quadrant-4 .task-input:focus { border-color: #6b7280; box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1); }
 
 .add-task-btn {
     width: 100%;
     padding: 12px;
-    border: 2px dashed #cbd5e0;
-    border-radius: 12px;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
     background: transparent;
-    color: #718096;
+    color: #6b7280;
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 600;
@@ -1962,15 +1979,15 @@ body {
 }
 
 .add-task-btn:hover {
-    border-color: #4299e1;
-    color: #4299e1;
-    background: rgba(66, 153, 225, 0.05);
+    border-color: #374151;
+    color: #374151;
+    background: rgba(55, 65, 81, 0.05);
 }
 
-.quadrant-1 .add-task-btn:hover { border-color: #e53e3e; color: #e53e3e; background: rgba(229, 62, 62, 0.05); }
-.quadrant-2 .add-task-btn:hover { border-color: #38a169; color: #38a169; background: rgba(56, 161, 105, 0.05); }
-.quadrant-3 .add-task-btn:hover { border-color: #ed8936; color: #ed8936; background: rgba(237, 137, 54, 0.05); }
-.quadrant-4 .add-task-btn:hover { border-color: #718096; color: #718096; background: rgba(113, 128, 150, 0.05); }
+.quadrant-1 .add-task-btn:hover { border-color: #6b7280; color: #6b7280; background: rgba(107, 114, 128, 0.05); }
+.quadrant-2 .add-task-btn:hover { border-color: #374151; color: #374151; background: rgba(55, 65, 81, 0.05); }
+.quadrant-3 .add-task-btn:hover { border-color: #9ca3af; color: #9ca3af; background: rgba(156, 163, 175, 0.05); }
+.quadrant-4 .add-task-btn:hover { border-color: #6b7280; color: #6b7280; background: rgba(107, 114, 128, 0.05); }
 
 .task-list {
     list-style: none;
@@ -1983,22 +2000,22 @@ body {
     align-items: center;
     padding: 15px;
     margin-bottom: 10px;
-    background: #f7fafc;
-    border-radius: 12px;
-    border-left: 4px solid;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
-.quadrant-1 .task-item { border-left-color: #e53e3e; }
-.quadrant-2 .task-item { border-left-color: #38a169; }
-.quadrant-3 .task-item { border-left-color: #ed8936; }
-.quadrant-4 .task-item { border-left-color: #718096; }
+.quadrant-1 .task-item { border-left-color: #6b7280; }
+.quadrant-2 .task-item { border-left-color: #374151; }
+.quadrant-3 .task-item { border-left-color: #9ca3af; }
+.quadrant-4 .task-item { border-left-color: #d1d5db; }
 
 .task-item:hover {
     background: white;
-    transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .task-checkbox {
@@ -2006,34 +2023,34 @@ body {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #4299e1;
+    accent-color: #374151;
 }
 
 .task-text {
     flex: 1;
     font-size: 1rem;
-    color: #2d3748;
+    color: #374151;
     transition: all 0.3s ease;
 }
 
 .task-text.completed {
     text-decoration: line-through;
     opacity: 0.6;
-    color: #718096;
+    color: #6b7280;
 }
 
 .task-meta {
     font-size: 0.8rem;
-    color: #718096;
+    color: #6b7280;
     margin-top: 4px;
 }
 
 .delete-btn {
-    background: #e53e3e;
+    background: #ef4444;
     color: white;
     border: none;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
     font-weight: 600;
@@ -2046,29 +2063,29 @@ body {
 }
 
 .delete-btn:hover {
-    background: #c53030;
+    background: #dc2626;
     transform: scale(1.05);
 }
 
 /* ===== 드래그 앤 드롭 스타일 ===== */
 .task-item.dragging {
     opacity: 0.5;
-    transform: rotate(5deg);
+    transform: rotate(2deg);
     z-index: 1000;
 }
 
 .quadrant.drag-over {
-    background: rgba(66, 153, 225, 0.1);
-    border: 2px dashed #4299e1;
+    background: rgba(55, 65, 81, 0.05);
+    border: 1px dashed #374151;
 }
 
 .task-item.completed {
-    background: #e6fffa;
-    border-left-color: #38a169;
+    background: #f0f9ff;
+    border-left-color: #10b981;
 }
 
 .task-item.completed .task-checkbox {
-    accent-color: #38a169;
+    accent-color: #10b981;
 }
 
 /* ===== 상태 메시지 ===== */
@@ -2077,13 +2094,13 @@ body {
     top: 20px;
     right: 20px;
     padding: 15px 25px;
-    border-radius: 12px;
+    border-radius: 8px;
     color: white;
     font-weight: 600;
     z-index: 1000;
     transform: translateX(400px);
     transition: transform 0.3s ease;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 
 .status-message.show {
@@ -2091,11 +2108,11 @@ body {
 }
 
 .status-message.success {
-    background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .status-message.error {
-    background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 /* ===== 캐릭터 ===== */
@@ -2105,20 +2122,21 @@ body {
     right: 30px;
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #81e6d9 0%, #4fd1c7 100%);
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    box-shadow: 0 8px 32px rgba(79, 209, 199, 0.3);
+    box-shadow: 0 4px 16px rgba(107, 114, 128, 0.15);
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 100;
+    border: 1px solid #f3f4f6;
 }
 
 .cute-character:hover {
-    transform: scale(1.1) rotate(10deg);
+    transform: scale(1.05) rotate(5deg);
 }
 
 /* ===== 반응형 디자인 ===== */
