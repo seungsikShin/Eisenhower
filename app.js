@@ -941,16 +941,23 @@ function renderMainCalendar() {
             const eventsContainer = document.createElement('div');
             eventsContainer.className = 'day-events';
             
-            dayEvents.slice(0, 3).forEach(event => {
+            dayEvents.slice(0, 4).forEach(event => {
                 const eventElement = document.createElement('div');
                 eventElement.className = 'day-event';
-                eventElement.style.backgroundColor = event.backgroundColor || event.color;
-                eventElement.style.color = getContrastColor(event.color);
+                
+                // 배경색과 텍스트 색상 설정
+                const bgColor = event.backgroundColor || event.color || '#3182ce';
+                const textColor = getContrastColor(bgColor);
+                
+                eventElement.style.backgroundColor = bgColor;
+                eventElement.style.color = textColor;
                 eventElement.textContent = event.title;
                 eventElement.title = `${event.title} (${event.type})`;
                 
+                // 이벤트 클릭 시 상세보기
                 eventElement.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    console.log('일정 클릭됨:', event);
                     showEventDetail(event);
                 });
                 
@@ -958,10 +965,10 @@ function renderMainCalendar() {
             });
             
             // 더 많은 이벤트가 있으면 표시
-            if (dayEvents.length > 3) {
+            if (dayEvents.length > 4) {
                 const moreElement = document.createElement('div');
                 moreElement.className = 'day-event more-events';
-                moreElement.textContent = `+${dayEvents.length - 3}개 더`;
+                moreElement.textContent = `+${dayEvents.length - 4}개 더`;
                 eventsContainer.appendChild(moreElement);
             }
             
@@ -991,12 +998,13 @@ window.goToToday = function() {
 
 // 이벤트 폼 표시 (한국 시간 기준으로 수정)
 window.showEventForm = function(selectedDate = null) {
+    console.log('showEventForm 호출됨, 새 일정 추가');
     const modal = document.getElementById('event-modal');
     const form = document.getElementById('event-form');
     
-    // 폼 초기화
+    // 폼 초기화 (새 일정 추가일 때만)
     form.reset();
-    selectedEvent = null;
+    selectedEvent = null; // 새 일정 추가 시에만 null로 설정
     
     // 모달 제목 설정
     document.getElementById('event-modal-title').textContent = '새 일정 추가';
@@ -1052,11 +1060,12 @@ function selectEventColor(color, backgroundColor) {
 
 // 이벤트 상세보기
 function showEventDetail(event) {
-    selectedEvent = event;
+    console.log('showEventDetail 호출됨:', event);
+    selectedEvent = { ...event }; // 깊은 복사로 안전하게 저장
     
-    document.getElementById('event-detail-color').style.backgroundColor = event.color;
-    document.getElementById('event-detail-title').textContent = event.title;
-    document.getElementById('event-detail-type').textContent = event.type;
+    document.getElementById('event-detail-color').style.backgroundColor = event.color || event.backgroundColor || '#3182ce';
+    document.getElementById('event-detail-title').textContent = event.title || '제목 없음';
+    document.getElementById('event-detail-type').textContent = event.type || '업무';
     document.getElementById('event-detail-date').textContent = formatEventDate(event);
     document.getElementById('event-detail-time').textContent = formatEventTime(event);
     document.getElementById('event-detail-creator').textContent = event.createdByName || event.createdByEmail || '알 수 없음';
@@ -1064,6 +1073,7 @@ function showEventDetail(event) {
     document.getElementById('event-detail-desc').textContent = event.description || '상세 설명이 없습니다.';
     
     document.getElementById('event-detail-modal').classList.add('show');
+    console.log('selectedEvent 저장됨:', selectedEvent);
 }
 
 // 이벤트 상세보기 모달 숨기기
@@ -1074,25 +1084,35 @@ window.hideEventDetailModal = function() {
 
 // 이벤트 수정
 window.editEvent = function() {
-    if (!selectedEvent) return;
+    console.log('editEvent 함수 호출됨');
+    console.log('selectedEvent:', selectedEvent);
+    
+    if (!selectedEvent) {
+        console.error('selectedEvent가 없습니다');
+        showMessage('일정 정보를 찾을 수 없습니다.', 'error');
+        return;
+    }
     
     hideEventDetailModal();
     
     // 폼에 기존 데이터 채우기
     document.getElementById('event-modal-title').textContent = '일정 수정';
-    document.getElementById('event-title').value = selectedEvent.title;
-    document.getElementById('event-type').value = selectedEvent.type;
-    document.getElementById('event-start-date').value = selectedEvent.startDate;
+    document.getElementById('event-title').value = selectedEvent.title || '';
+    document.getElementById('event-type').value = selectedEvent.type || '업무';
+    document.getElementById('event-start-date').value = selectedEvent.startDate || '';
     document.getElementById('event-start-time').value = selectedEvent.startTime || '';
-    document.getElementById('event-end-date').value = selectedEvent.endDate || selectedEvent.startDate;
+    document.getElementById('event-end-date').value = selectedEvent.endDate || selectedEvent.startDate || '';
     document.getElementById('event-end-time').value = selectedEvent.endTime || '';
     document.getElementById('event-description').value = selectedEvent.description || '';
     document.getElementById('event-participants').value = selectedEvent.participants || '';
     
     // 색상 선택
-    selectEventColor(selectedEvent.color, selectedEvent.backgroundColor);
+    const eventColor = selectedEvent.color || '#e53e3e';
+    const eventBg = selectedEvent.backgroundColor || '#fed7d7';
+    selectEventColor(eventColor, eventBg);
     
     document.getElementById('event-modal').classList.add('show');
+    console.log('일정 수정 모달 표시됨');
 };
 
 // 이벤트 삭제
@@ -1175,15 +1195,23 @@ function formatEventTime(event) {
 
 // 색상 대비 계산 (텍스트 색상 결정)
 function getContrastColor(hexColor) {
-    // hex를 RGB로 변환
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
+    if (!hexColor || hexColor === '') {
+        return '#ffffff';
+    }
     
-    // 밝기 계산
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    // # 제거
+    const color = hexColor.replace('#', '');
     
-    return brightness > 128 ? '#000000' : '#ffffff';
+    // RGB 값 추출
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+    
+    // 상대적 휘도 계산 (WCAG 기준)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // 명암비가 높은 색상 반환
+    return luminance > 0.6 ? '#000000' : '#ffffff';
 }
 
 // =============================================
@@ -1725,13 +1753,15 @@ document.getElementById('event-form').addEventListener('submit', async (e) => {
         endTime: document.getElementById('event-end-time').value,
         description: document.getElementById('event-description').value,
         participants: document.getElementById('event-participants').value,
-        color: selectedEventColor,
-        backgroundColor: selectedEventBg,
+        color: selectedEventColor || '#3182ce',
+        backgroundColor: selectedEventBg || '#bee3f8',
         createdBy: userId,
         createdByName: currentUser.displayName || currentUser.email,
         createdByEmail: currentUser.email,
         createdAt: new Date().toISOString()
     };
+    
+    console.log('일정 저장 데이터:', formData);
 
     try {
         if (selectedEvent) {
