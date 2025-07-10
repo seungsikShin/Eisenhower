@@ -67,7 +67,8 @@ body {
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+    width: 100%;
 }
 
 .form-group {
@@ -2691,12 +2692,24 @@ body {
     }
 
     .form-input {
-        padding: 10px 14px;
-        font-size: 0.9rem;
+        padding: 14px 16px;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+        height: 48px;
+        box-sizing: border-box;
     }
 
     .auth-form {
-        gap: 14px;
+        gap: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 12px;
+    }
+    
+    .auth-card {
+        padding: 30px 25px;
+        max-width: 400px;
     }
 
     .quadrant-options {
@@ -3376,4 +3389,319 @@ textarea:focus {
         padding: 2px 4px;
         min-width: 40px;
     }
+}
+
+/* ===== 차트 섹션 스타일 ===== */
+.charts-section {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.chart-container:last-child {
+    grid-template-columns: 1fr;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card.wide {
+    grid-column: 1 / -1;
+}
+
+.chart-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.chart-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+}
+
+.chart-header p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.chart-content {
+    position: relative;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chart-content canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.chart-card.wide .chart-content {
+    height: 300px;
+}
+
+/* 차트 로딩 상태 */
+.chart-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #6b7280;
+}
+
+.chart-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.chart-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.chart-empty .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.chart-empty p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* 반응형 차트 */
+@media (max-width: 1200px) {
+    .chart-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .chart-content {
+        height: 220px;
+    }
+    
+    .chart-card.wide .chart-content {
+        height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .charts-section {
+        margin-top: 20px;
+    }
+    
+    .chart-card {
+        padding: 16px;
+    }
+    
+    .chart-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .chart-header p {
+        font-size: 0.85rem;
+    }
+    
+    .chart-content {
+        height: 200px;
+    }
+    
+    .chart-card.wide .chart-content {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+    
+    .chart-header {
+        margin-bottom: 16px;
+    }
+    
+    .chart-header h3 {
+        font-size: 1rem;
+    }
+    
+    .chart-content {
+        height: 180px;
+    }
+    
+    .chart-card.wide .chart-content {
+        height: 220px;
+    }
+}
+
+/* ===== 캘린더 드래그 앤 드롭 스타일 ===== */
+.draggable-event {
+    cursor: move;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.draggable-event:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+.draggable-event.dragging {
+    opacity: 0.5 !important;
+    transform: rotate(2deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.calendar-day.drag-over {
+    background-color: #eff6ff !important;
+    border: 2px dashed #3b82f6 !important;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.calendar-day.drag-over .day-number {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* 드래그 가능한 일정 표시 */
+.draggable-event::before {
+    content: '⋮⋮';
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 0.8;
+    writing-mode: vertical-lr;
+}
+
+/* 터치 기기에서의 드래그 향상 */
+@media (pointer: coarse) {
+    .draggable-event {
+        cursor: grab;
+        touch-action: none;
+    }
+    
+    .draggable-event:active {
+        cursor: grabbing;
+    }
+    
+    .calendar-day.drag-over {
+        background-color: #fef3c7 !important;
+        border-color: #f59e0b !important;
+    }
+}
+
+/* 드래그 중인 일정의 복사본 스타일 */
+.day-event.ghost {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* 관리자 권한 표시 */
+.admin-indicator {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* 드래그 도움말 툴팁 */
+.drag-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.drag-tooltip.show {
+    opacity: 1;
+}
+
+/* 모바일에서 드래그 비활성화 */
+@media (max-width: 768px) {
+    .draggable-event {
+        cursor: pointer;
+    }
+    
+    .draggable-event::before {
+        display: none;
+    }
+    
+    /* 모바일에서는 길게 눌러서 드래그 힌트 제공 */
+    .calendar-day {
+        position: relative;
+    }
+    
+    .mobile-drag-hint {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        font-size: 10px;
+        color: #6b7280;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .calendar-day:hover .mobile-drag-hint {
+        opacity: 1;
+    }
+}
+
+/* 애니메이션 */
+@keyframes dragPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.calendar-day.drag-target {
+    animation: dragPulse 0.8s ease-in-out infinite;
 }
