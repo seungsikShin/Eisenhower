@@ -61,7 +61,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
         userId = user.uid;
-        document.getElementById('user-email').textContent = user.email;
+        loadUserData(user.uid);
         showMainApp();
         loadSharedAuditTasks();
         loadPersonalTasks();
@@ -75,6 +75,25 @@ onAuthStateChanged(auth, (user) => {
         console.log('사용자 로그아웃됨');
     }
 });
+
+// 사용자 데이터 로드 함수
+async function loadUserData(uid) {
+    try {
+        const userRef = ref(database, `users/${uid}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            document.getElementById('user-name').textContent = userData.name || currentUser.email;
+            currentUser.displayName = userData.name;
+        } else {
+            document.getElementById('user-name').textContent = currentUser.email;
+        }
+    } catch (error) {
+        console.error('사용자 데이터 로드 오류:', error);
+        document.getElementById('user-name').textContent = currentUser.email;
+    }
+}
 
 // 화면 전환 함수들
 function showAuthScreen() {
@@ -241,6 +260,12 @@ function renderSharedAuditTasks() {
 window.showWorkForm = function() {
     document.getElementById('work-form').classList.add('show');
     document.getElementById('work-form').scrollIntoView({ behavior: 'smooth' });
+    
+    // 담당자 필드에 현재 사용자 이름 자동 입력
+    if (currentUser) {
+        const userName = currentUser.displayName || currentUser.email;
+        document.getElementById('responsible-person').value = userName;
+    }
 };
 
 window.hideWorkForm = function() {
@@ -939,6 +964,12 @@ window.showEventForm = function(selectedDate = null) {
         document.getElementById('event-end-date').value = today;
     }
     
+    // 참석자 필드에 현재 사용자 이름 자동 입력
+    if (currentUser) {
+        const userName = currentUser.displayName || currentUser.email;
+        document.getElementById('event-participants').value = userName;
+    }
+    
     // 기본 색상 선택
     selectEventColor('#e53e3e', '#fed7d7');
     
@@ -1446,11 +1477,12 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const confirmPassword = document.getElementById('signup-confirm').value;
     
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
         showAuthMessage('모든 필드를 입력해주세요.', 'error');
         return;
     }
@@ -1468,7 +1500,18 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     setButtonLoading('signup-btn', true);
     
     try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Firebase Authentication으로 계정 생성
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // 사용자 정보를 Realtime Database에 저장
+        const userRef = ref(database, `users/${user.uid}`);
+        await set(userRef, {
+            name: name,
+            email: email,
+            createdAt: new Date().toISOString()
+        });
+        
         showAuthMessage('회원가입 성공! 환영합니다! 🎉', 'success');
     } catch (error) {
         console.error('회원가입 오류:', error);
@@ -1482,7 +1525,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
                 errorMessage = '올바른 이메일 형식이 아닙니다.';
                 break;
             case 'auth/weak-password':
-                errorMessage = '비밀번호가 너무 약합니다. 6자 이상 입력해주세요.';
+                errorMessage = '비밀번호가 너무 약습니다. 6자 이상 입력해주세요.';
                 break;
         }
         
@@ -1605,6 +1648,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// 일정 폼 제출 처리
+document.getElementById('event-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        showMessage('로그인이 필요합니다.', 'error');
+        return;
+    }
+
+    const formData = {
+        title: document.getElementById('event-title').value,
+        type: document.getElementById('event-type').value,
+        startDate: document.getElementById('event-start-date').value,
+        endDate: document.getElementById('event-end-date').value || document.getElementById('event-start-date').value,
+        startTime: document.getElementById('event-start-time').value,
+        endTime: document.getElementById('event-end-time').value,
+        description: document.getElementById('event-description').value,
+        participants: document.getElementById('event-participants').value,
+        color: selectedEventColor,
+        backgroundColor: selectedEventBg,
+        createdBy: userId,
+        createdByName: currentUser.displayName || currentUser.email,
+        createdByEmail: currentUser.email,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        if (selectedEvent) {
+            // 수정 모드
+            const eventRef = ref(database, `shared-calendar-events/${selectedEvent.id}`);
+            await set(eventRef, { 
+                ...selectedEvent, 
+                ...formData,
+                updatedAt: new Date().toISOString(),
+                updatedBy: userId,
+                updatedByName: currentUser.displayName || currentUser.email
+            });
+            showMessage('일정이 성공적으로 수정되었습니다! ✏️', 'success');
+        } else {
+            // 새 일정 등록
+            const eventsRef = ref(database, 'shared-calendar-events');
+            await push(eventsRef, formData);
+            showMessage('일정이 성공적으로 등록되었습니다! 🎉', 'success');
+        }
+        
+        hideEventModal();
+    } catch (error) {
+        console.error('일정 저장 실패:', error);
+        showMessage('일정 저장 중 오류가 발생했습니다.', 'error');
+    }
+});
+
 // =============================================
 // 초기화
 // =============================================
@@ -1617,6 +1712,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (taskDateInput) taskDateInput.value = today;
     if (startDateInput) startDateInput.value = today;
+    
+    // 색상 선택기 이벤트 리스너 추가
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const color = this.getAttribute('data-color');
+            const backgroundColor = this.getAttribute('data-bg');
+            selectEventColor(color, backgroundColor);
+        });
+    });
     
     console.log('🎯 통합 감사업무 매트릭스 시스템이 로드되었습니다!');
 });
