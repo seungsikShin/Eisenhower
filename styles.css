@@ -2792,3 +2792,369 @@ textarea:focus {
         page-break-inside: avoid;
     }
 }
+
+/* ===== 업무명 클릭 가능 스타일 ===== */
+.work-name-clickable {
+    cursor: pointer;
+    color: #667eea;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+    padding: 2px 0;
+}
+
+.work-name-clickable:hover {
+    color: #764ba2;
+    border-bottom-color: #764ba2;
+    transform: translateY(-1px);
+}
+
+/* ===== 업무 퀵뷰 모달 스타일 ===== */
+.work-quickview-modal {
+    display: none;
+    position: fixed;
+    z-index: 1002;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+}
+
+.work-quickview-content {
+    position: relative;
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 700px;
+    max-height: 90vh;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.work-quickview-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.work-quickview-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.work-quickview-body {
+    padding: 20px;
+    max-height: calc(90vh - 70px);
+    overflow-y: auto;
+}
+
+.work-info-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.work-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 80px;
+    font-size: 13px;
+}
+
+.info-item span:last-child {
+    color: #34495e;
+    font-size: 13px;
+}
+
+.work-description, .work-issues {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+.work-description h4, .work-issues h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.work-description p, .work-issues p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 13px;
+    color: #34495e;
+}
+
+.quickview-comments-section {
+    margin-bottom: 16px;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.comments-header h4 {
+    margin: 0;
+    font-size: 15px;
+    color: #2c3e50;
+}
+
+.comments-count {
+    background-color: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.comments-list-compact {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #fafbfc;
+}
+
+.comment-item-compact {
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.comment-item-compact:last-child {
+    margin-bottom: 0;
+}
+
+.comment-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.comment-author-compact {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 11px;
+}
+
+.comment-date-compact {
+    color: #7f8c8d;
+    font-size: 10px;
+}
+
+.comment-content-compact {
+    color: #34495e;
+    line-height: 1.4;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.comment-form-compact {
+    margin-bottom: 16px;
+}
+
+.comment-input-container-compact {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.comment-textarea-compact {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    resize: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.comment-textarea-compact:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.btn-comment-submit-compact {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-comment-submit-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.quickview-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding-top: 16px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.btn-quickview-detail, .btn-quickview-edit {
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-quickview-detail {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.btn-quickview-detail:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.btn-quickview-edit {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.btn-quickview-edit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* ===== 반응형 디자인 개선 ===== */
+@media (max-width: 768px) {
+    .work-quickview-content {
+        width: 98%;
+        margin: 1% auto;
+        max-height: 95vh;
+    }
+    
+    .work-info-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .quickview-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-quickview-detail, .btn-quickview-edit {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .comment-input-container-compact {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .btn-comment-submit-compact {
+        width: 100%;
+    }
+    
+    /* 댓글 모달 반응형 */
+    .comment-modal-content {
+        width: 98%;
+        margin: 1% auto;
+        max-height: 95vh;
+    }
+    
+    /* 테이블 반응형 개선 */
+    .work-table {
+        font-size: 12px;
+    }
+    
+    .action-btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .btn-comment, .btn-import, .btn-edit, .btn-delete {
+        padding: 4px 8px;
+        font-size: 10px;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .work-quickview-content {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+    
+    .work-quickview-body {
+        padding: 16px;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 6px 0;
+    }
+    
+    .info-label {
+        min-width: auto;
+        margin-bottom: 2px;
+    }
+    
+    /* 테이블 스크롤 */
+    .work-table-container {
+        overflow-x: auto;
+    }
+    
+    .work-table {
+        min-width: 800px;
+    }
+}
