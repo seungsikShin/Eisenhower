@@ -3190,3 +3190,46 @@ async function moveCalendarEvent(eventId, originalDate, newDate) {
         showMessage('일정 이동 중 오류가 발생했습니다.', 'error');
     }
 }
+
+// 댓글 작성 시 이름 표시 (이메일 앞부분이 아니라, 사용자 이름)
+function getDisplayNameByEmail(email) {
+  // 사용자 정보 캐시 또는 DB에서 이름을 가져오는 함수 (이미 구현되어 있으면 그 함수 사용)
+  // 예시: userProfiles[email] = { name: '홍길동', ... }
+  if (window.userProfiles && window.userProfiles[email] && window.userProfiles[email].name) {
+    return window.userProfiles[email].name;
+  }
+  return email.split('@')[0];
+}
+
+// 댓글 렌더링 시 이름 표시
+function renderCommentsForWork(workId, comments) {
+  // 업무 목록 테이블에서 각 업무 행 아래에 최근 댓글 1~2개를 표시
+  const workRow = document.querySelector(`[data-work-id="${workId}"]`);
+  if (!workRow) return;
+  let commentHtml = '';
+  comments.slice(0,2).forEach(comment => {
+    const name = getDisplayNameByEmail(comment.authorEmail);
+    commentHtml += `<div class="work-comment-preview"><b>${name}</b>: ${escapeHtml(comment.content)} <span class="comment-time">${formatCommentTime(comment.createdAt)}</span></div>`;
+  });
+  let previewRow = workRow.nextElementSibling;
+  if (!previewRow || !previewRow.classList.contains('work-comment-row')) {
+    previewRow = document.createElement('tr');
+    previewRow.className = 'work-comment-row';
+    previewRow.innerHTML = `<td colspan="7">${commentHtml}</td>`;
+    workRow.parentNode.insertBefore(previewRow, workRow.nextSibling);
+  } else {
+    previewRow.innerHTML = `<td colspan="7">${commentHtml}</td>`;
+  }
+}
+
+// 업무 목록 렌더링 시 각 업무별로 댓글 프리뷰 표시
+function renderWorkTableWithComments(workList, commentsByWorkId) {
+  // ... 기존 업무 테이블 렌더링 코드 ...
+  workList.forEach(work => {
+    // ... 업무 행 생성 ...
+    // 댓글 프리뷰 추가
+    if (commentsByWorkId[work.id]) {
+      renderCommentsForWork(work.id, commentsByWorkId[work.id]);
+    }
+  });
+}
