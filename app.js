@@ -3191,10 +3191,8 @@ async function moveCalendarEvent(eventId, originalDate, newDate) {
     }
 }
 
-// 댓글 작성 시 이름 표시 (이메일 앞부분이 아니라, 사용자 이름)
+// 댓글 작성 시 이름 표시 (userProfiles에서 이름, 없으면 이메일 앞부분)
 function getDisplayNameByEmail(email) {
-  // 사용자 정보 캐시 또는 DB에서 이름을 가져오는 함수 (이미 구현되어 있으면 그 함수 사용)
-  // 예시: userProfiles[email] = { name: '홍길동', ... }
   if (window.userProfiles && window.userProfiles[email] && window.userProfiles[email].name) {
     return window.userProfiles[email].name;
   }
@@ -3224,12 +3222,32 @@ function renderCommentsForWork(workId, comments) {
 
 // 업무 목록 렌더링 시 각 업무별로 댓글 프리뷰 표시
 function renderWorkTableWithComments(workList, commentsByWorkId) {
-  // ... 기존 업무 테이블 렌더링 코드 ...
+  const tbody = document.getElementById('work-table-body');
+  tbody.innerHTML = '';
   workList.forEach(work => {
-    // ... 업무 행 생성 ...
-    // 댓글 프리뷰 추가
-    if (commentsByWorkId[work.id]) {
-      renderCommentsForWork(work.id, commentsByWorkId[work.id]);
-    }
+    // 업무 행 생성
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-work-id', work.id);
+    tr.innerHTML = `
+      <td>${work.category}</td>
+      <td>${work.name}</td>
+      <td>${work.targetDept}</td>
+      <td>${work.period}</td>
+      <td>${work.status}</td>
+      <td>${work.responsible}</td>
+      <td><!-- 관리 버튼 등 --></td>
+    `;
+    tbody.appendChild(tr);
+    // 댓글 미리보기 row 생성
+    const comments = commentsByWorkId[work.id] || [];
+    let commentHtml = '';
+    comments.slice(0,2).forEach(comment => {
+      const name = getDisplayNameByEmail(comment.authorEmail);
+      commentHtml += `<div class="work-comment-preview"><b>${name}</b>: ${escapeHtml(comment.content)} <span class="comment-time">${formatCommentTime(comment.createdAt)}</span></div>`;
+    });
+    const commentTr = document.createElement('tr');
+    commentTr.className = 'work-comment-row';
+    commentTr.innerHTML = `<td colspan="7">${commentHtml}</td>`;
+    tbody.appendChild(commentTr);
   });
 }
