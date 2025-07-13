@@ -3245,20 +3245,3 @@ function renderWorkTableWithComments(workList, commentsByWorkId) {
     tbody.appendChild(commentTr);
   });
 }
-
-// 댓글 미리보기 데이터를 모두 불러온 뒤 렌더링
-const commentsByWorkId = {};
-async function loadWorkComments(workId) {
-    const commentsRef = ref(database, `work-comments/${workId}`);
-    const snapshot = await get(commentsRef);
-    if (snapshot.exists()) {
-        const comments = Object.entries(snapshot.val() || {})
-            .map(([id, comment]) => ({ id, ...comment }))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .reverse()
-            .slice(0, 5);
-        commentsByWorkId[workId] = comments;
-    } else {
-        commentsByWorkId[workId] = [];
-    }
-}
