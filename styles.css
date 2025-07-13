@@ -1189,9 +1189,9 @@ body, .dashboard-bg, .main-app, .container {
 }
 
 .stat-card .count {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #374151;
+    color: #111 !important;
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
 }
 
 /* ===== 업무 목록 섹션 ===== */
@@ -4136,4 +4136,53 @@ body, .gowun-batang-regular {
   color: #9ca3af;
   font-size: 0.85em;
   margin-left: 8px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Sunflower:wght@300&display=swap');
+
+body, .sunflower-light, h1, h2, h3, h4, h5, h6, .stat-card, .work-list-header, .header, .nav-tab, .btn, .btn-primary, .btn-csv, .btn-new, .btn-save, .btn-save-event, .calendar-btn, .btn-today, .btn-add-event, .work-table, .form-input, .form-select, .form-textarea {
+  font-family: 'Sunflower', 'Gowun Batang', 'Malgun Gothic', 'Noto Sans KR', serif !important;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.sunflower-light {
+  font-family: 'Sunflower', sans-serif !important;
+  font-weight: 300 !important;
+  font-style: normal !important;
+}
+
+.calendar-stats-section .stat-card .count {
+  color: #111 !important;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+}
+
+.main-calendar-container {
+  padding: 18px !important;
+  border-radius: 12px !important;
+}
+.calendar-days {
+  gap: 1px !important;
+}
+.calendar-day {
+  min-height: 90px !important;
+  padding: 4px !important;
+  font-size: 0.95rem !important;
+}
+.day-number {
+  font-size: 0.95rem !important;
+  margin-bottom: 2px !important;
+}
+@media (max-width: 1200px) {
+  .main-calendar-container {
+    padding: 10px !important;
+  }
+  .calendar-day {
+    min-height: 60px !important;
+    font-size: 0.85rem !important;
+  }
+  .day-number {
+    font-size: 0.85rem !important;
+  }
 }
