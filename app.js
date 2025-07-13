@@ -856,25 +856,21 @@ function getFieldDisplayName(field) {
     return fieldNames[field] || field;
 }
 
-// 댓글 추가
+// 댓글 추가 (이름 저장)
 window.addComment = function() {
     if (!selectedWorkId || !currentUser) {
         showMessage('로그인이 필요합니다.', 'error');
         return;
     }
-    
     const commentInput = document.getElementById('comment-input');
     const content = commentInput.value.trim();
-    
     if (!content) {
         showMessage('댓글 내용을 입력해주세요.', 'error');
         return;
     }
-    
     const submitBtn = document.querySelector('.btn-comment-submit');
     submitBtn.disabled = true;
     submitBtn.textContent = '등록 중...';
-    
     const commentData = {
         content: content,
         authorId: userId,
@@ -883,10 +879,8 @@ window.addComment = function() {
         createdAt: new Date().toISOString(),
         workId: selectedWorkId
     };
-    
     const commentsRef = ref(database, `work-comments/${selectedWorkId}`);
     const newCommentRef = push(commentsRef);
-    
     set(newCommentRef, commentData)
         .then(() => {
             console.log('✅ 댓글 추가 성공');
@@ -2815,12 +2809,13 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
                 }
             });
             
-            // 업무 데이터 업데이트
+            // 업무 데이터 업데이트 (이름도 함께 저장)
             await set(workRef, { 
                 ...existingData, 
                 ...formData,
                 updatedBy: userId,
-                updatedByEmail: currentUser.email
+                updatedByEmail: currentUser.email,
+                updatedByName: currentUser.displayName || null
             });
             
             // 변경사항이 있으면 이력 추가
@@ -2835,19 +2830,18 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
             form.removeAttribute('data-edit-mode');
             form.removeAttribute('data-edit-id');
         } else {
-            // 새 업무 등록
+            // 새 업무 등록 (이름도 함께 저장)
             const tasksRef = ref(database, 'shared-audit-tasks');
             const newWorkRef = await push(tasksRef, {
                 ...formData,
                 createdBy: userId,
                 createdByEmail: currentUser.email,
+                createdByName: currentUser.displayName || null,
                 createdAt: new Date().toISOString()
             });
-            
             // 업무 등록 이력 추가
             const newWorkId = newWorkRef.key;
             addWorkHistory(newWorkId, '업무 등록', `새로운 감사업무 "${formData.workName}"을(를) 등록했습니다.`);
-            
             showMessage('업무가 성공적으로 등록되었습니다! 🎉', 'success');
         }
         
@@ -3250,4 +3244,21 @@ function renderWorkTableWithComments(workList, commentsByWorkId) {
     commentTr.innerHTML = `<td colspan="7">${commentHtml}</td>`;
     tbody.appendChild(commentTr);
   });
+}
+
+// 댓글 미리보기 데이터를 모두 불러온 뒤 렌더링
+const commentsByWorkId = {};
+async function loadWorkComments(workId) {
+    const commentsRef = ref(database, `work-comments/${workId}`);
+    const snapshot = await get(commentsRef);
+    if (snapshot.exists()) {
+        const comments = Object.entries(snapshot.val() || {})
+            .map(([id, comment]) => ({ id, ...comment }))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .reverse()
+            .slice(0, 5);
+        commentsByWorkId[workId] = comments;
+    } else {
+        commentsByWorkId[workId] = [];
+    }
 }
