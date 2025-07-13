@@ -108,16 +108,19 @@ onAuthStateChanged(auth, (user) => {
         
         // 사용자 데이터 로드 후 메인 화면 표시
         loadUserData(user.uid).then(() => {
-            showMainApp();
-            
-            // 데이터 로드
-            setTimeout(() => {
-                loadSharedAuditTasks();
-                loadPersonalTasks();
-                loadDatesWithData();
-                renderMiniCalendar();
-                console.log('모든 데이터 로드 완료');
-            }, 100);
+            // 모든 사용자 프로필도 로드
+            loadAllUserProfiles().then(() => {
+                showMainApp();
+                
+                // 데이터 로드
+                setTimeout(() => {
+                    loadSharedAuditTasks();
+                    loadPersonalTasks();
+                    loadDatesWithData();
+                    renderMiniCalendar();
+                    console.log('모든 데이터 로드 완료');
+                }, 100);
+            });
         }).catch((error) => {
             console.error('사용자 데이터 로드 실패:', error);
             showMainApp(); // 에러가 있어도 메인 화면은 표시
@@ -322,10 +325,9 @@ function loadSharedAuditTasks() {
     });
 }
 
-// 공유 감사업무 목록 렌더링
+// 공유 감사업무 목록 렌더링 (업무명 아래에 댓글 미리보기/토글)
 function renderSharedAuditTasks() {
     const tableBody = document.getElementById('work-table-body');
-    
     if (sharedAuditTasks.length === 0) {
         tableBody.innerHTML = `
             <tr>
@@ -336,23 +338,23 @@ function renderSharedAuditTasks() {
         `;
         return;
     }
-
     let filteredTasks = sharedAuditTasks;
     if (currentFilter !== '전체') {
         filteredTasks = sharedAuditTasks.filter(task => task.status === currentFilter);
     }
-
-    tableBody.innerHTML = filteredTasks.map(task => {
-        // 편집 권한 확인
+    tableBody.innerHTML = '';
+    filteredTasks.forEach(task => {
         const canEdit = hasEditPermission(task.createdBy, task.createdByEmail);
-        
-        return `
-        <tr>
+        // 업무 행
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
             <td>${task.category || '-'}</td>
             <td style="font-weight: 600;">
                 <span class="work-name-clickable" onclick="showWorkQuickView('${task.id}')" title="클릭하여 상세정보 및 댓글 보기">
                     ${task.workName || '-'}
                 </span>
+                <div id="comment-preview-${task.id}" class="comment-preview-list" style="margin-top:6px;"></div>
+                <button class="btn-toggle-comments" data-work-id="${task.id}" style="font-size:11px;margin-top:2px;">▼ 댓글 더보기</button>
             </td>
             <td>${task.targetDept || '-'}</td>
             <td>${formatDateRange(task.startDate, task.endDate)}</td>
@@ -369,8 +371,46 @@ function renderSharedAuditTasks() {
                     ${canEdit ? `<button class="btn-delete" onclick="deleteWork('${task.id}')">🗑️ 삭제</button>` : ''}
                 </div>
             </td>
-        </tr>
         `;
+        tableBody.appendChild(tr);
+        // 댓글 미리보기 렌더링
+        renderCommentPreviewForWork(task.id, 2);
+    });
+    // 토글 버튼 이벤트 위임
+    tableBody.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-toggle-comments')) {
+            const workId = e.target.dataset.workId;
+            const previewDiv = document.getElementById(`comment-preview-${workId}`);
+            if (e.target.textContent.includes('더보기')) {
+                renderCommentPreviewForWork(workId, 5);
+                e.target.textContent = '▲ 댓글 접기';
+            } else {
+                renderCommentPreviewForWork(workId, 2);
+                e.target.textContent = '▼ 댓글 더보기';
+            }
+        }
+    });
+}
+
+// 댓글 미리보기 렌더링 함수 (업무명 아래)
+async function renderCommentPreviewForWork(workId, count) {
+    const previewDiv = document.getElementById(`comment-preview-${workId}`);
+    if (!previewDiv) return;
+    const commentsRef = ref(database, `work-comments/${workId}`);
+    const snapshot = await get(commentsRef);
+    let comments = [];
+    if (snapshot.exists()) {
+        comments = Object.values(snapshot.val() || {})
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, count);
+    }
+    if (comments.length === 0) {
+        previewDiv.innerHTML = '<span style="color:#aaa;font-size:12px;">댓글 없음</span>';
+        return;
+    }
+    previewDiv.innerHTML = comments.map(comment => {
+        const name = getDisplayNameByEmail(comment.authorEmail);
+        return `<div class="work-comment-preview" style="font-size:12px;margin-bottom:2px;"><b>${name}</b>: ${escapeHtml(comment.content)} <span class="comment-time" style="color:#888;font-size:11px;">${formatCommentTime(comment.createdAt)}</span></div>`;
     }).join('');
 }
 
@@ -3190,7 +3230,7 @@ function getDisplayNameByEmail(email) {
   if (window.userProfiles && window.userProfiles[email] && window.userProfiles[email].name) {
     return window.userProfiles[email].name;
   }
-  return email.split('@')[0];
+  return email ? email.split('@')[0] : '익명';
 }
 
 // 댓글 렌더링 시 이름 표시
@@ -3244,4 +3284,19 @@ function renderWorkTableWithComments(workList, commentsByWorkId) {
     commentTr.innerHTML = `<td colspan="7">${commentHtml}</td>`;
     tbody.appendChild(commentTr);
   });
+}
+
+// 모든 사용자 프로필을 한 번에 로드해서 window.userProfiles에 저장
+async function loadAllUserProfiles() {
+  const usersRef = ref(database, 'users');
+  const snapshot = await get(usersRef);
+  window.userProfiles = {};
+  if (snapshot.exists()) {
+    const users = snapshot.val();
+    Object.values(users).forEach(user => {
+      if (user.email) {
+        window.userProfiles[user.email] = user;
+      }
+    });
+  }
 }
