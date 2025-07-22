@@ -30,6 +30,7 @@ let selectedWorkForMatrix = null;
 let selectedEvent = null;
 let selectedEventColor = '#e53e3e';
 let selectedEventBg = '#fed7d7';
+let currentCompanyCode = 'OKH'; // 기본값
 
 // 캘린더 관련 변수
 let currentCalendarDate = new Date();
@@ -114,12 +115,15 @@ onAuthStateChanged(auth, (user) => {
                 
                 // 데이터 로드
                 setTimeout(() => {
+                    setupCompanySelector();
                     loadSharedAuditTasks();
                     loadPersonalTasks();
                     loadDatesWithData();
                     renderMiniCalendar();
                     console.log('모든 데이터 로드 완료');
                 }, 100);
+                // 알림 센터 리스너 연결
+                setupNotificationListener();
             });
         }).catch((error) => {
             console.error('사용자 데이터 로드 실패:', error);
@@ -307,7 +311,7 @@ window.switchView = function(viewName) {
 
 // 공유 감사업무 데이터 로드
 function loadSharedAuditTasks() {
-    const tasksRef = ref(database, 'shared-audit-tasks');
+    const tasksRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-audit-tasks`);
     
     onValue(tasksRef, (snapshot) => {
         sharedAuditTasks = [];
@@ -396,7 +400,7 @@ function renderSharedAuditTasks() {
 async function renderCommentPreviewForWork(workId, count) {
     const previewDiv = document.getElementById(`comment-preview-${workId}`);
     if (!previewDiv) return;
-    const commentsRef = ref(database, `work-comments/${workId}`);
+    const commentsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${workId}`);
     const snapshot = await get(commentsRef);
     let comments = [];
     if (snapshot.exists()) {
@@ -410,7 +414,7 @@ async function renderCommentPreviewForWork(workId, count) {
     }
     previewDiv.innerHTML = comments.map(comment => {
         const name = getDisplayNameByEmail(comment.authorEmail);
-        return `<div class="work-comment-preview" style="font-size:12px;margin-bottom:2px;"><b>${name}</b>: ${escapeHtml(comment.content)} <span class="comment-time" style="color:#888;font-size:11px;">${formatCommentTime(comment.createdAt)}</span></div>`;
+        return `<div class="work-comment-preview" style="font-size:12px;margin-bottom:2px;"><b>${name}</b>: ${highlightMentions(escapeHtml(comment.content))} <span class="comment-time" style="color:#888;font-size:11px;">${formatCommentTime(comment.createdAt)}</span></div>`;
     }).join('');
 }
 
@@ -496,7 +500,7 @@ window.deleteWork = function(workId) {
         }
     }
 
-    const workRef = ref(database, `shared-audit-tasks/${workId}`);
+    const workRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-audit-tasks/${workId}`);
     remove(workRef)
         .then(() => {
             showMessage('업무가 삭제되었습니다.', 'success');
@@ -652,53 +656,42 @@ window.hideWorkQuickView = function() {
 // 퀵뷰 댓글 로드
 async function loadQuickViewComments(workId) {
     try {
-        const commentsRef = ref(database, `work-comments/${workId}`);
+        const commentsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${workId}`);
         const snapshot = await get(commentsRef);
-        
         const commentsList = document.getElementById('quickview-comments-list');
         const commentsCount = document.getElementById('quickview-comments-count');
-        
         if (!snapshot.exists()) {
             commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다.</div>';
             commentsCount.textContent = '0개';
             return;
         }
-        
         const comments = Object.entries(snapshot.val() || {})
             .map(([id, comment]) => ({ id, ...comment }))
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
         commentsCount.textContent = `${comments.length}개`;
-        
         if (comments.length === 0) {
             commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다.</div>';
             return;
         }
-        
         // 최근 3개 댓글만 표시
         const recentComments = comments.slice(0, 3);
-        
         const commentsHTML = await Promise.all(recentComments.map(async comment => {
             const authorName = await getUserDisplayName(comment.authorEmail);
             const timeAgo = getTimeAgo(comment.createdAt);
-            
             return `
                 <div class="comment-item-compact">
                     <div class="comment-header-compact">
                         <span class="comment-author-compact">${authorName}</span>
                         <span class="comment-date-compact">${timeAgo}</span>
                     </div>
-                    <div class="comment-content-compact">${escapeHtml(comment.content)}</div>
+                    <div class="comment-content-compact">${highlightMentions(escapeHtml(comment.content))}</div>
                 </div>
             `;
         }));
-        
         commentsList.innerHTML = commentsHTML.join('');
-        
         if (comments.length > 3) {
             commentsList.innerHTML += `<div style="text-align: center; margin-top: 8px; color: #6b7280; font-size: 11px;">+${comments.length - 3}개 더 보기</div>`;
         }
-        
     } catch (error) {
         console.error('퀵뷰 댓글 로드 오류:', error);
     }
@@ -733,7 +726,7 @@ window.addQuickViewComment = async function() {
             workId: currentWorkId
         };
         
-        const commentRef = push(ref(database, `work-comments/${currentWorkId}`));
+        const commentRef = push(ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${currentWorkId}`));
         await set(commentRef, commentData);
         
         // 댓글 입력창 초기화
@@ -764,7 +757,7 @@ window.editWorkFromQuickView = function() {
 
 // 댓글 로드
 function loadWorkComments(workId) {
-    const commentsRef = ref(database, `work-comments/${workId}`);
+    const commentsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${workId}`);
     
     onValue(commentsRef, (snapshot) => {
         currentWorkComments = [];
@@ -811,28 +804,23 @@ function loadWorkHistory(workId) {
 // 댓글 렌더링
 async function renderComments() {
     const commentsList = document.getElementById('comments-list');
-    
     if (currentWorkComments.length === 0) {
         commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!</div>';
         return;
     }
-    
     const commentsHTML = await Promise.all(currentWorkComments.map(async comment => {
         const authorName = await getUserDisplayName(comment.authorEmail);
-        
         return `
             <div class="comment-item">
                 <div class="comment-header">
                     <span class="comment-author">${authorName}</span>
                     <span class="comment-time">${formatCommentTime(comment.createdAt)}</span>
                 </div>
-                <div class="comment-content">${escapeHtml(comment.content)}</div>
+                <div class="comment-content">${highlightMentions(escapeHtml(comment.content))}</div>
             </div>
         `;
     }));
-    
     commentsList.innerHTML = commentsHTML.join('');
-    
     // 스크롤을 아래로
     commentsList.scrollTop = commentsList.scrollHeight;
 }
@@ -919,7 +907,7 @@ window.addComment = function() {
         createdAt: new Date().toISOString(),
         workId: selectedWorkId
     };
-    const commentsRef = ref(database, `work-comments/${selectedWorkId}`);
+    const commentsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${selectedWorkId}`);
     const newCommentRef = push(commentsRef);
     set(newCommentRef, commentData)
         .then(() => {
@@ -1461,7 +1449,7 @@ window.goToDate = function(date) {
 
 // 공유 캘린더 이벤트 로드
 function loadSharedCalendarEvents() {
-    const eventsRef = ref(database, 'shared-calendar-events');
+    const eventsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-calendar-events`);
     
     onValue(eventsRef, (snapshot) => {
         sharedCalendarEvents = [];
@@ -1474,7 +1462,6 @@ function loadSharedCalendarEvents() {
                 });
             });
         }
-        updateCreatorFilter(); // 등록자 필터 업데이트
         renderMainCalendar();
         updateCalendarStats();
     });
@@ -1987,7 +1974,7 @@ window.deleteEvent = function() {
         return;
     }
     
-    const eventRef = ref(database, `shared-calendar-events/${selectedEvent.id}`);
+    const eventRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-calendar-events/${selectedEvent.id}`);
     remove(eventRef)
         .then(() => {
             hideEventDetailModal();
@@ -2831,7 +2818,7 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
     try {
         if (isEditMode && editId) {
             // 수정 모드
-            const workRef = ref(database, `shared-audit-tasks/${editId}`);
+            const workRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-audit-tasks/${editId}`);
             const existingData = sharedAuditTasks.find(task => task.id === editId);
             
             // 변경사항 감지
@@ -2871,7 +2858,7 @@ document.getElementById('work-form-element').addEventListener('submit', async (e
             form.removeAttribute('data-edit-id');
         } else {
             // 새 업무 등록 (이름도 함께 저장)
-            const tasksRef = ref(database, 'shared-audit-tasks');
+            const tasksRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-audit-tasks`);
             const newWorkRef = await push(tasksRef, {
                 ...formData,
                 createdBy: userId,
@@ -3014,7 +3001,7 @@ document.getElementById('event-form').addEventListener('submit', async (e) => {
     try {
         if (selectedEvent) {
             // 수정 모드
-            const eventRef = ref(database, `shared-calendar-events/${selectedEvent.id}`);
+            const eventRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-calendar-events/${selectedEvent.id}`);
             await set(eventRef, { 
                 ...selectedEvent, 
                 ...formData,
@@ -3025,7 +3012,7 @@ document.getElementById('event-form').addEventListener('submit', async (e) => {
             showMessage('일정이 성공적으로 수정되었습니다! ✏️', 'success');
         } else {
             // 새 일정 등록
-            const eventsRef = ref(database, 'shared-calendar-events');
+            const eventsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-calendar-events`);
             await push(eventsRef, formData);
             showMessage('일정이 성공적으로 등록되었습니다! 🎉', 'success');
         }
@@ -3208,7 +3195,7 @@ async function moveCalendarEvent(eventId, originalDate, newDate) {
         };
         
         // Firebase 업데이트
-        const eventRef = ref(database, `shared-calendar-events/${eventId}`);
+        const eventRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/shared-calendar-events/${eventId}`);
         await set(eventRef, updatedEvent);
         
         // 성공 메시지
@@ -3299,4 +3286,578 @@ async function loadAllUserProfiles() {
       }
     });
   }
+}
+
+// ========== @멘션 자동완성 드롭다운 기능 ========== //
+
+// 멘션 드롭다운 DOM 생성
+function createMentionDropdown(inputId) {
+    let dropdown = document.getElementById(inputId + '-mention-dropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = inputId + '-mention-dropdown';
+        dropdown.className = 'mention-dropdown';
+        dropdown.style.position = 'absolute';
+        dropdown.style.zIndex = 1000;
+        dropdown.style.display = 'none';
+        dropdown.style.background = '#fff';
+        dropdown.style.border = '1px solid #e5e7eb';
+        dropdown.style.borderRadius = '6px';
+        dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+        dropdown.style.minWidth = '180px';
+        dropdown.style.maxHeight = '180px';
+        dropdown.style.overflowY = 'auto';
+        document.body.appendChild(dropdown);
+    }
+    return dropdown;
+}
+
+// 멘션 후보 필터링
+function filterMentionUsers(query) {
+    if (!window.userProfiles) return [];
+    const q = query.toLowerCase();
+    return Object.values(window.userProfiles).filter(user => {
+        return (
+            (user.name && user.name.toLowerCase().includes(q)) ||
+            (user.email && user.email.toLowerCase().includes(q))
+        );
+    });
+}
+
+// 멘션 드롭다운 표시
+function showMentionDropdown(input, mentionStart, mentionQuery) {
+    const dropdown = createMentionDropdown(input.id);
+    const users = filterMentionUsers(mentionQuery);
+    if (users.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+    dropdown.innerHTML = users.map((user, idx) =>
+        `<div class="mention-item" data-email="${user.email}" data-name="${user.name || user.email}" tabindex="0" style="padding:6px 12px;cursor:pointer;${idx===0?'background:#f3f4f6;':''}">
+            <b>${user.name || user.email}</b> <span style="color:#888;font-size:12px;">${user.email}</span>
+        </div>`
+    ).join('');
+    // 위치 계산
+    const rect = input.getBoundingClientRect();
+    const lineHeight = 24;
+    dropdown.style.left = rect.left + window.scrollX + 'px';
+    dropdown.style.top = rect.top + window.scrollY + input.offsetHeight + 'px';
+    dropdown.style.display = 'block';
+    // 키보드/마우스 이벤트
+    let selectedIdx = 0;
+    function updateActive(idx) {
+        Array.from(dropdown.children).forEach((el, i) => {
+            el.style.background = i === idx ? '#f3f4f6' : '';
+        });
+    }
+    dropdown.onmouseover = e => {
+        if (e.target.classList.contains('mention-item')) {
+            selectedIdx = Array.from(dropdown.children).indexOf(e.target);
+            updateActive(selectedIdx);
+        }
+    };
+    dropdown.onmousedown = e => {
+        if (e.target.classList.contains('mention-item')) {
+            insertMention(input, mentionStart, e.target.dataset.name, e.target.dataset.email);
+            dropdown.style.display = 'none';
+            e.preventDefault();
+        }
+    };
+    // 키보드 네비게이션
+    input.onkeydown = function(e) {
+        if (dropdown.style.display !== 'block') return;
+        if (e.key === 'ArrowDown') {
+            selectedIdx = (selectedIdx + 1) % users.length;
+            updateActive(selectedIdx);
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            selectedIdx = (selectedIdx - 1 + users.length) % users.length;
+            updateActive(selectedIdx);
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            insertMention(input, mentionStart, users[selectedIdx].name || users[selectedIdx].email, users[selectedIdx].email);
+            dropdown.style.display = 'none';
+            e.preventDefault();
+        } else if (e.key === 'Escape') {
+            dropdown.style.display = 'none';
+        }
+    };
+}
+
+// 멘션 삽입
+function insertMention(input, mentionStart, name, email) {
+    const value = input.value;
+    const before = value.slice(0, mentionStart);
+    const after = value.slice(input.selectionStart);
+    const mentionText = '@' + (name || email) + ' ';
+    input.value = before + mentionText + after;
+    // 커서 위치 조정
+    const pos = before.length + mentionText.length;
+    input.setSelectionRange(pos, pos);
+    input.focus();
+}
+
+// 입력 이벤트 핸들러 등록
+function setupMentionAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    let mentionActive = false;
+    let mentionStart = 0;
+    input.addEventListener('input', function(e) {
+        const cursor = input.selectionStart;
+        const value = input.value;
+        // @ 입력 위치 찾기
+        const before = value.slice(0, cursor);
+        const match = /(^|\s)@(\w*)$/.exec(before);
+        if (match) {
+            mentionActive = true;
+            mentionStart = cursor - match[2].length - 1;
+            showMentionDropdown(input, mentionStart, match[2]);
+        } else {
+            mentionActive = false;
+            const dropdown = document.getElementById(inputId + '-mention-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }
+    });
+    // blur 시 드롭다운 숨김
+    input.addEventListener('blur', function() {
+        setTimeout(() => {
+            const dropdown = document.getElementById(inputId + '-mention-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }, 200);
+    });
+}
+
+// DOMContentLoaded 후 자동완성 세팅
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        setupMentionAutocomplete('comment-input');
+        setupMentionAutocomplete('quickview-comment-input');
+    });
+} else {
+    setupMentionAutocomplete('comment-input');
+    setupMentionAutocomplete('quickview-comment-input');
+}
+
+// ========== @멘션 하이라이트 유틸 ========== //
+function highlightMentions(text) {
+    // @이름 또는 @이메일 패턴을 span.mention-tag로 감싸기
+    return text.replace(/(^|\s)@([\w가-힣._%+-]+@[\w.-]+\.[A-Za-z]{2,}|[\w가-힣]+)/g, function(match, space, mention) {
+        return space + '<span class="mention-tag">@' + mention + '</span>';
+    });
+}
+
+// ========== @멘션 툴팁 기능 ========== //
+function showMentionTooltip(email, anchorEl) {
+    // 기존 툴팁 제거
+    hideMentionTooltip();
+    if (!window.userProfiles || !window.userProfiles[email]) return;
+    const user = window.userProfiles[email];
+    const tooltip = document.createElement('div');
+    tooltip.className = 'mention-tooltip';
+    tooltip.style.position = 'absolute';
+    tooltip.style.zIndex = 2000;
+    tooltip.style.background = '#fff';
+    tooltip.style.border = '1px solid #e5e7eb';
+    tooltip.style.borderRadius = '8px';
+    tooltip.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)';
+    tooltip.style.padding = '14px 18px';
+    tooltip.style.fontSize = '15px';
+    tooltip.style.minWidth = '200px';
+    tooltip.style.color = '#222';
+    tooltip.innerHTML = `
+        <div style="font-weight:700;font-size:17px;">${user.name || user.email}</div>
+        <div style="color:#555;margin-bottom:4px;">${user.email}</div>
+        ${user.department ? `<div style='color:#888;'>${user.department}</div>` : ''}
+        ${user.position ? `<div style='color:#888;'>${user.position}</div>` : ''}
+    `;
+    document.body.appendChild(tooltip);
+    // 위치 계산
+    const rect = anchorEl.getBoundingClientRect();
+    tooltip.style.left = (rect.left + window.scrollX) + 'px';
+    tooltip.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    // 외부 클릭/esc 시 툴팁 제거
+    setTimeout(() => {
+        function hideOnClick(e) {
+            if (!tooltip.contains(e.target)) hideMentionTooltip();
+        }
+        function hideOnEsc(e) {
+            if (e.key === 'Escape') hideMentionTooltip();
+        }
+        document.addEventListener('mousedown', hideOnClick, { once: true });
+        document.addEventListener('keydown', hideOnEsc, { once: true });
+        tooltip._cleanup = () => {
+            document.removeEventListener('mousedown', hideOnClick);
+            document.removeEventListener('keydown', hideOnEsc);
+        };
+    }, 10);
+}
+function hideMentionTooltip() {
+    const tooltip = document.querySelector('.mention-tooltip');
+    if (tooltip) {
+        if (tooltip._cleanup) tooltip._cleanup();
+        tooltip.remove();
+    }
+}
+// 댓글 영역에 멘션 클릭 이벤트 위임
+function setupMentionTagClickHandlers() {
+    function handler(e) {
+        if (e.target.classList.contains('mention-tag')) {
+            // 멘션에서 이메일 추출
+            const text = e.target.textContent.slice(1); // remove @
+            let email = text;
+            // 이름만 있을 경우 userProfiles에서 이메일 찾기
+            if (!/@/.test(email) && window.userProfiles) {
+                for (const u of Object.values(window.userProfiles)) {
+                    if (u.name === email) { email = u.email; break; }
+                }
+            }
+            if (/@/.test(email)) {
+                showMentionTooltip(email, e.target);
+            }
+        } else {
+            hideMentionTooltip();
+        }
+    }
+    // 댓글 모달/퀵뷰/프리뷰 등 주요 컨테이너에 이벤트 위임
+    ['comments-list', 'quickview-comments-list'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', handler);
+        }
+    });
+    // 업무명 아래 프리뷰(동적 생성) - document에 위임
+    document.body.addEventListener('click', function(e) {
+        if (e.target.classList && e.target.classList.contains('mention-tag')) {
+            handler(e);
+        } else {
+            hideMentionTooltip();
+        }
+    });
+}
+// DOMContentLoaded 후 멘션 클릭 핸들러 세팅
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupMentionTagClickHandlers);
+} else {
+    setupMentionTagClickHandlers();
+}
+
+// ========== 멘션 알림 유틸 ========== //
+function extractMentions(text) {
+    // @이름 또는 @이메일 패턴 추출
+    const regex = /(^|\s)@([\w가-힣._%+-]+@[\w.-]+\.[A-Za-z]{2,}|[\w가-힣]+)/g;
+    const mentions = [];
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        mentions.push(match[2]);
+    }
+    return mentions;
+}
+async function resolveMentionEmails(mentionList) {
+    // 이름만 있을 경우 userProfiles에서 이메일로 변환
+    const emails = [];
+    for (const m of mentionList) {
+        if (/@/.test(m)) {
+            emails.push(m);
+        } else if (window.userProfiles) {
+            for (const u of Object.values(window.userProfiles)) {
+                if (u.name === m) { emails.push(u.email); break; }
+            }
+        }
+    }
+    return emails.filter(Boolean);
+}
+async function sendMentionNotifications(mentionedEmails, commentData, workName) {
+    if (!window.userProfiles) return;
+    for (const email of mentionedEmails) {
+        const user = Object.values(window.userProfiles).find(u => u.email === email);
+        if (!user || !user.userId) continue;
+        const notification = {
+            type: 'mention',
+            subType: 'work_comment',
+            title: '새 멘션 알림',
+            message: `${commentData.authorName || commentData.authorEmail}님이 "${workName}" 업무에서 회원님을 멘션했습니다.`,
+            content: {
+                mentionText: commentData.content,
+                workId: commentData.workId,
+                workName: workName,
+                commentId: commentData.id || '',
+                mentionedBy: {
+                    userId: commentData.authorId,
+                    userName: commentData.authorName,
+                    userEmail: commentData.authorEmail
+                }
+            },
+            status: { read: false, readAt: null, dismissed: false, dismissedAt: null },
+            delivery: { channels: ['browser'], browserDelivered: false },
+            metadata: {
+                createdAt: new Date().toISOString(),
+                priority: 'high',
+                companyCode: commentData.companyCode || '',
+                sourceUserId: commentData.authorId,
+                targetUserId: user.userId
+            }
+        };
+        const notifRef = push(ref(database, `notifications/${user.userId}`));
+        await set(notifRef, notification);
+    }
+}
+// ========== 실시간 알림 리스너 ========== //
+function setupNotificationListener() {
+    if (!userId) return;
+    const notifRef = ref(database, `notifications/${userId}`);
+    onValue(notifRef, (snapshot) => {
+        if (!snapshot.exists()) return;
+        const notifs = Object.entries(snapshot.val() || {});
+        for (const [id, notif] of notifs) {
+            if (!notif.status || notif.status.read === false) {
+                // 인앱 알림
+                showInAppNotification(notif.title, notif.message);
+                // 브라우저 알림
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification(notif.title, { body: notif.message });
+                }
+                // 알림을 읽음 처리(간단히)
+                set(ref(database, `notifications/${userId}/${id}/status/read`), true);
+                set(ref(database, `notifications/${userId}/${id}/status/readAt`), new Date().toISOString());
+            }
+        }
+    });
+}
+function showInAppNotification(title, message) {
+    // 간단한 상단 배너(기존 status-message 활용)
+    const msg = document.getElementById('status-message');
+    if (!msg) return;
+    msg.textContent = `${title} - ${message}`;
+    msg.classList.add('show', 'success');
+    setTimeout(() => { msg.classList.remove('show', 'success'); }, 4000);
+}
+// ========== 댓글 등록 함수에 멘션 알림 연동 ========== //
+// 상세 댓글
+const origAddComment = window.addComment;
+window.addComment = async function() {
+    if (!selectedWorkId || !currentUser) {
+        showMessage('로그인이 필요합니다.', 'error');
+        return;
+    }
+    const commentInput = document.getElementById('comment-input');
+    const content = commentInput.value.trim();
+    if (!content) {
+        showMessage('댓글 내용을 입력해주세요.', 'error');
+        return;
+    }
+    const submitBtn = document.querySelector('.btn-comment-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '등록 중...';
+    const commentData = {
+        content: content,
+        authorId: userId,
+        authorName: currentUser.displayName || null,
+        authorEmail: currentUser.email,
+        createdAt: new Date().toISOString(),
+        workId: selectedWorkId
+    };
+    const commentsRef = ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${selectedWorkId}`);
+    const newCommentRef = push(commentsRef);
+    commentData.id = newCommentRef.key;
+    try {
+        await set(newCommentRef, commentData);
+        // 멘션 알림
+        const mentions = extractMentions(content);
+        const emails = await resolveMentionEmails(mentions);
+        if (emails.length > 0) {
+            const work = sharedAuditTasks.find(t => t.id === selectedWorkId);
+            await sendMentionNotifications(emails, commentData, work ? work.workName : '업무');
+        }
+        commentInput.value = '';
+        showMessage('댓글이 추가되었습니다! 💬', 'success');
+    } catch (error) {
+        console.error('❌ 댓글 추가 실패:', error);
+        showMessage('댓글 추가 중 오류가 발생했습니다.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '댓글 등록';
+    }
+};
+// 퀵뷰 댓글
+const origAddQuickViewComment = window.addQuickViewComment;
+window.addQuickViewComment = async function() {
+    const content = document.getElementById('quickview-comment-input').value.trim();
+    if (!content) {
+        showMessage('댓글 내용을 입력하세요.', 'error');
+        return;
+    }
+    if (!currentWorkId) {
+        showMessage('업무 정보를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    try {
+        if (!currentUser) {
+            showMessage('로그인이 필요합니다.', 'error');
+            return;
+        }
+        const commentData = {
+            content: content,
+            authorId: userId,
+            authorName: currentUser.displayName || null,
+            authorEmail: currentUser.email,
+            createdAt: new Date().toISOString(),
+            workId: currentWorkId
+        };
+        const commentRef = push(ref(database, `company-data/${currentCompanyCode.toLowerCase()}-data/work-comments/${currentWorkId}`));
+        commentData.id = commentRef.key;
+        await set(commentRef, commentData);
+        // 멘션 알림
+        const mentions = extractMentions(content);
+        const emails = await resolveMentionEmails(mentions);
+        if (emails.length > 0) {
+            const work = sharedAuditTasks.find(t => t.id === currentWorkId);
+            await sendMentionNotifications(emails, commentData, work ? work.workName : '업무');
+        }
+        document.getElementById('quickview-comment-input').value = '';
+        await loadQuickViewComments(currentWorkId);
+        showMessage('댓글이 등록되었습니다.', 'success');
+    } catch (error) {
+        console.error('퀵뷰 댓글 추가 오류:', error);
+        showMessage('댓글 등록 중 오류가 발생했습니다.', 'error');
+    }
+};
+// ========== 로그인 후 알림 리스너 연결 ========== //
+// 인증 상태 변화 감지(onAuthStateChanged) 콜백 내에 추가:
+// setupNotificationListener();
+
+// ========== 알림 센터 UI 연동 ========== //
+let notificationListCache = [];
+function toggleNotificationDropdown() {
+    const center = document.querySelector('.notification-center');
+    if (!center) return;
+    center.classList.toggle('open');
+    if (center.classList.contains('open')) {
+        renderNotificationList();
+    }
+}
+function renderNotificationList() {
+    const listEl = document.getElementById('notification-list');
+    if (!listEl) return;
+    if (!notificationListCache.length) {
+        listEl.innerHTML = '<div class="no-notifications">알림이 없습니다.</div>';
+        return;
+    }
+    listEl.innerHTML = notificationListCache.slice(0, 10).map(notif => `
+        <div class="notification-item${notif.status && notif.status.read === false ? ' unread' : ''}" data-id="${notif._id}">
+            <div class="notif-title">${notif.title || '알림'}</div>
+            <div class="notif-message">${notif.message || ''}</div>
+            <div class="notif-time">${formatCommentTime(notif.metadata?.createdAt)}</div>
+        </div>
+    `).join('');
+}
+function updateNotificationCount() {
+    const countEl = document.getElementById('notification-count');
+    const unread = notificationListCache.filter(n => n.status && n.status.read === false).length;
+    if (unread > 0) {
+        countEl.textContent = unread;
+        countEl.style.display = 'inline-block';
+    } else {
+        countEl.style.display = 'none';
+    }
+}
+function markAllNotificationsRead(e) {
+    e.stopPropagation();
+    if (!userId) return;
+    notificationListCache.forEach(n => {
+        if (n.status && n.status.read === false) {
+            set(ref(database, `notifications/${userId}/${n._id}/status/read`), true);
+            set(ref(database, `notifications/${userId}/${n._id}/status/readAt`), new Date().toISOString());
+        }
+    });
+}
+// 알림 클릭 시 읽음 처리 및 이동(기본: 업무/댓글)
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('notification-item')) {
+        const id = e.target.dataset.id;
+        const notif = notificationListCache.find(n => n._id === id);
+        if (notif && notif.status && notif.status.read === false) {
+            set(ref(database, `notifications/${userId}/${id}/status/read`), true);
+            set(ref(database, `notifications/${userId}/${id}/status/readAt`), new Date().toISOString());
+        }
+        // 업무/댓글로 이동(기본: 대시보드)
+        if (notif && notif.content && notif.content.workId) {
+            showWorkComments(notif.content.workId);
+        }
+        document.querySelector('.notification-center')?.classList.remove('open');
+    }
+    // 드롭다운 외부 클릭 시 닫기
+    if (!e.target.closest('.notification-center')) {
+        document.querySelector('.notification-center')?.classList.remove('open');
+    }
+});
+// 알림 리스너에서 캐시/카운트/UI 갱신
+function setupNotificationListener() {
+    if (!userId) return;
+    const notifRef = ref(database, `notifications/${userId}`);
+    onValue(notifRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            notificationListCache = [];
+            renderNotificationList();
+            updateNotificationCount();
+            return;
+        }
+        const notifs = Object.entries(snapshot.val() || {}).map(([id, n]) => ({ ...n, _id: id }));
+        // 최신순 정렬
+        notifs.sort((a, b) => new Date(b.metadata?.createdAt || 0) - new Date(a.metadata?.createdAt || 0));
+        notificationListCache = notifs;
+        renderNotificationList();
+        updateNotificationCount();
+        // 인앱/브라우저 알림(읽지 않은 것만)
+        for (const notif of notifs) {
+            if (!notif.status || notif.status.read === false) {
+                showInAppNotification(notif.title, notif.message);
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification(notif.title, { body: notif.message });
+                }
+            }
+        }
+    });
+}
+
+// 계열사 선택 드롭다운 동적 세팅 및 변경 이벤트
+function setupCompanySelector() {
+    const selector = document.getElementById('company-selector');
+    if (!selector) return;
+    // 사용자 권한에 따라 노출 계열사 제한
+    let allowedCompanies = [
+        { code: 'OKH', name: '오케이홀딩스' },
+        { code: 'OFI', name: '오케이에프아이' },
+        { code: 'OCI', name: '오케이씨아이' }
+    ];
+    if (currentUser && window.userProfiles && window.userProfiles[currentUser.email]) {
+        const user = window.userProfiles[currentUser.email];
+        if (user.role !== 'admin' && Array.isArray(user.companies)) {
+            allowedCompanies = allowedCompanies.filter(c => user.companies.includes(c.code));
+        }
+    }
+    selector.innerHTML = allowedCompanies.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+    // 기본값
+    if (!allowedCompanies.find(c => c.code === currentCompanyCode)) {
+        currentCompanyCode = allowedCompanies[0]?.code || 'OKH';
+    }
+    selector.value = currentCompanyCode;
+    selector.onchange = function() {
+        currentCompanyCode = selector.value;
+        reloadCompanyData();
+    };
+}
+function reloadCompanyData() {
+    // 데이터 리로드/상태 초기화
+    sharedAuditTasks = [];
+    sharedCalendarEvents = [];
+    personalTasks = { 1: [], 2: [], 3: [], 4: [] };
+    currentFilter = '전체';
+    // 주요 데이터 다시 로드
+    loadSharedAuditTasks();
+    loadPersonalTasks();
+    loadSharedCalendarEvents();
+    loadDatesWithData();
+    renderMiniCalendar();
+    // 대시보드/매트릭스/캘린더 등 뷰 갱신 필요시 추가
 }
