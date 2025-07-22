@@ -77,10 +77,30 @@
                     <p>팀 협업과 개인 업무 관리를 위한 통합 플랫폼</p>
                 </div>
                 <div class="header-right">
+                    <select id="company-selector" class="company-selector" style="margin-right:18px;min-width:110px;max-width:180px;">
+                        <option value="OKH">오케이홀딩스</option>
+                        <option value="OFI">오케이에프아이</option>
+                        <option value="OCI">오케이씨아이</option>
+                    </select>
                     <div class="nav-tabs">
                         <button class="nav-tab active" onclick="switchView('dashboard')">📊 팀 대시보드</button>
                         <button class="nav-tab" onclick="switchView('calendar')">📅 팀 일정</button>
                         <button class="nav-tab" onclick="switchView('matrix')">🎯 내 매트릭스</button>
+                    </div>
+                    <div class="notification-center">
+                        <button id="notification-bell" class="notification-bell" onclick="toggleNotificationDropdown()">
+                            <span class="bell-icon">🔔</span>
+                            <span id="notification-count" class="notification-count" style="display:none;">0</span>
+                        </button>
+                        <div id="notification-dropdown" class="notification-dropdown">
+                            <div class="dropdown-header">
+                                <span>알림</span>
+                                <button class="mark-all-read-btn" onclick="markAllNotificationsRead(event)">모두 읽음</button>
+                            </div>
+                            <div id="notification-list" class="notification-list">
+                                <div class="no-notifications">알림이 없습니다.</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="user-info">
                         <span id="user-name" class="user-email"></span>
