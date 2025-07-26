@@ -3603,27 +3603,7 @@ async function sendMentionNotifications(mentionedEmails, commentData, workName) 
     }
 }
 // ========== 실시간 알림 리스너 ========== //
-function setupNotificationListener() {
-    if (!userId) return;
-    const notifRef = ref(database, `notifications/${userId}`);
-    onValue(notifRef, (snapshot) => {
-        if (!snapshot.exists()) return;
-        const notifs = Object.entries(snapshot.val() || {});
-        for (const [id, notif] of notifs) {
-            if (!notif.status || notif.status.read === false) {
-                // 인앱 알림
-                showInAppNotification(notif.title, notif.message);
-                // 브라우저 알림
-                if (window.Notification && Notification.permission === 'granted') {
-                    new Notification(notif.title, { body: notif.message });
-                }
-                // 알림을 읽음 처리(간단히)
-                set(ref(database, `notifications/${userId}/${id}/status/read`), true);
-                set(ref(database, `notifications/${userId}/${id}/status/readAt`), new Date().toISOString());
-            }
-        }
-    });
-}
+// setupNotificationListener 함수는 아래쪽(Line 3795)에 더 완전한 버전으로 정의됨
 function showInAppNotification(title, message) {
     // 간단한 상단 배너(기존 status-message 활용)
     const msg = document.getElementById('status-message');
