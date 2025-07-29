@@ -3807,8 +3807,8 @@ function setupCompanySelector() {
     // 사용자 권한에 따라 노출 계열사 제한
     let allowedCompanies = [
         { code: 'OKH', name: '오케이홀딩스' },
-        { code: 'OFI', name: '오케이에프아이' },
-        { code: 'OCI', name: '오케이씨아이' }
+        { code: 'OFI', name: '오케이에프앤아이' },
+        { code: 'OCI', name: '오케이신용정보' }
     ];
     if (currentUser && window.userProfiles && window.userProfiles[currentUser.email]) {
         const user = window.userProfiles[currentUser.email];
