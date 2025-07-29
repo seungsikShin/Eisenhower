@@ -237,6 +237,7 @@ body, .dashboard-bg, .main-app, .container {
     box-shadow: 0 2px 16px rgba(0,0,0,0.04);
     margin-bottom: 30px;
     border: 1px solid #f3f4f6;
+    min-height: 80px; /* 추가 */
 }
 
 .header-left h1 {
@@ -254,23 +255,29 @@ body, .dashboard-bg, .main-app, .container {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px; /* 20px에서 12px로 변경 */
+    flex-shrink: 0; /* 추가 */
+    min-width: 0; /* 추가 */
 }
 
 .nav-tabs {
     display: flex;
-    gap: 8px;
+    gap: 6px; /* 8px에서 6px로 변경 */
+    flex-shrink: 0; /* 추가 */
+    flex-wrap: nowrap; /* 추가 */
 }
 
 .nav-tab {
-    padding: 12px 24px;
+    padding: 10px 16px; /* 12px 24px에서 변경 */
     border: none;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap; /* 추가 */
+    font-size: 0.9rem; /* 추가 */
+    flex-shrink: 0; /* 추가 */
 }
-
 .nav-tab.active {
     background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: white;
@@ -290,17 +297,23 @@ body, .dashboard-bg, .main-app, .container {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px; /* 15px에서 변경 */
     background: #f9fafb;
-    padding: 10px 20px;
+    padding: 8px 16px; /* 10px 20px에서 변경 */
     border-radius: 12px;
     border: 1px solid #f3f4f6;
+    flex-shrink: 0; /* 추가 */
+    min-width: 0; /* 추가 */
 }
 
 .user-email {
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* 0.9rem에서 변경 */
     color: #6b7280;
     font-weight: 500;
+    white-space: nowrap; /* 추가 */
+    overflow: hidden; /* 추가 */
+    text-overflow: ellipsis; /* 추가 */
+    max-width: 120px; /* 추가 */
 }
 
 .logout-btn {
@@ -4189,9 +4202,10 @@ body, .sunflower-light, h1, h2, h3, h4, h5, h6, .stat-card, .work-list-header, .
 
 /* ===== 알림 센터 ===== */
 .notification-center {
-  position: relative;
-  display: inline-block;
-  margin-right: 18px;
+    position: relative;
+    display: inline-block;
+    margin-right: 12px; /* 18px에서 변경 */
+    flex-shrink: 0; /* 추가 */
 }
 .notification-bell {
   background: none;
@@ -4303,18 +4317,63 @@ body, .sunflower-light, h1, h2, h3, h4, h5, h6, .stat-card, .work-list-header, .
 }
 
 .company-selector {
-  font-size: 1.05rem;
-  padding: 5px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 7px;
-  background: #fff;
-  color: #2d3748;
-  font-family: inherit;
-  outline: none;
-  margin-right: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: border 0.15s;
+    font-size: 0.95rem; /* 1.05rem에서 변경 */
+    padding: 5px 10px; /* 5px 12px에서 변경 */
+    border: 1.5px solid #e5e7eb;
+    border-radius: 7px;
+    background: #fff;
+    color: #2d3748;
+    font-family: inherit;
+    outline: none;
+    margin-right: 8px; /* 10px에서 변경 */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: border 0.15s;
+    max-width: 140px; /* 추가 */
+    flex-shrink: 0; /* 추가 */
 }
 .company-selector:focus {
   border-color: #3182ce;
+}
+/* 네비게이션 반응형 개선 */
+@media (max-width: 1400px) {
+    .header {
+        padding: 15px 20px;
+    }
+    
+    .header-right {
+        gap: 10px;
+    }
+    
+    .nav-tab {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .company-selector {
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .nav-tab {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .company-selector {
+        max-width: 100px;
+        font-size: 0.85rem;
+    }
+    
+    .notification-bell {
+        font-size: 1.3rem;
+        padding: 0 2px;
+    }
+    
+    .user-info {
+        padding: 6px 12px;
+        gap: 8px;
+    }
 }
