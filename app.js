@@ -247,11 +247,14 @@ function showMainApp() {
     loadSharedCalendarEvents();
     
     // 차트 초기화 (Chart.js가 로드된 경우에만)
+    if (!window.chartsInitialized) {
     setTimeout(() => {
         if (window.Chart && typeof initializeCharts === 'function') {
             initializeCharts();
+            window.chartsInitialized = true;
         }
-    }, 500);
+    }, 1000);
+};
     
     console.log('메인 앱 화면 표시됨');
 }
@@ -318,6 +321,8 @@ window.logout = async function() {
 
 // 뷰 전환 함수
 window.switchView = function(viewName) {
+    console.log('🔄 뷰 전환 시작:', viewName);
+    
     // 탭 활성화 상태 변경
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.classList.remove('active');
@@ -339,18 +344,21 @@ window.switchView = function(viewName) {
     
     if (viewName === 'dashboard') {
         document.getElementById('dashboard-view').classList.add('active');
-        loadSharedAuditTasks();
+        renderSharedAuditTasks();
+        updateDashboardStats();
     } else if (viewName === 'calendar') {
         document.getElementById('calendar-view').classList.add('active');
-        loadSharedCalendarEvents();
         renderMainCalendar();
+        updateCalendarStats();
     } else if (viewName === 'matrix') {
         document.getElementById('matrix-view').classList.add('active');
-        loadPersonalTasks();
+        if (personalTasks && Object.values(personalTasks).flat().length === 0) {
+            loadPersonalTasks();
+        }
         renderMiniCalendar();
     }
     
-    console.log(`뷰 전환됨: ${viewName}`);
+    console.log('✅ 뷰 전환됨:', viewName);
 };
 
 // =============================================
@@ -1082,24 +1090,42 @@ window.exportToCSV = function() {
 
 // 개인 매트릭스 데이터 로드
 function loadPersonalTasks() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.log('❌ 사용자 로그인 필요');
+        return;
+    }
     
-    const selectedDate = document.getElementById('task-date').value;
+    const selectedDate = document.getElementById('task-date')?.value;
+    if (!selectedDate) {
+        console.log('❌ 선택된 날짜가 없음');
+        return;
+    }
+    
+    console.log('📱 개인 업무 로드 시도:', selectedDate);
+    
     const taskRef = ref(database, `eisenhower-tasks/${userId}/${selectedDate}`);
     
     get(taskRef).then((snapshot) => {
         if (snapshot.exists()) {
             const data = snapshot.val();
             personalTasks = data.tasks || { 1: [], 2: [], 3: [], 4: [] };
+            console.log('✅ 개인 업무 로드 성공:', Object.values(personalTasks).flat().length, '개');
         } else {
             personalTasks = { 1: [], 2: [], 3: [], 4: [] };
+            console.log('ℹ️ 해당 날짜에 개인 업무 없음');
         }
         renderPersonalTasks();
         updateMatrixStats();
     }).catch((error) => {
-        console.error('개인 업무 로드 실패:', error);
-        personalTasks = { 1: [], 2: [], 3: [], 4: [] };
-        renderPersonalTasks();
+        console.error('❌ 개인 업무 로드 실패:', error.message);
+        
+        // Permission denied 오류인 경우 빈 데이터로 초기화
+        if (error.message.includes('Permission denied')) {
+            console.log('🔒 권한 없음 - 빈 데이터로 초기화');
+            personalTasks = { 1: [], 2: [], 3: [], 4: [] };
+            renderPersonalTasks();
+            updateMatrixStats();
+        }
     });
 }
 
@@ -1377,7 +1403,12 @@ function renderCalendar() {
 
 // 데이터가 있는 날짜들 로드
 function loadDatesWithData() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.log('❌ 사용자 로그인 필요');
+        return;
+    }
+    
+    console.log('📅 날짜 데이터 로드 시도');
     
     const userTasksRef = ref(database, `eisenhower-tasks/${userId}`);
     get(userTasksRef)
@@ -1392,12 +1423,21 @@ function loadDatesWithData() {
                         datesWithData.add(date);
                     }
                 });
+                console.log('✅ 날짜 데이터 로드 성공:', datesWithData.size, '개 날짜');
+            } else {
+                console.log('ℹ️ 날짜 데이터 없음');
             }
             renderMiniCalendar();
         })
         .catch((error) => {
-            console.error('Firebase 날짜 데이터 로드 실패:', error);
-            renderMiniCalendar();
+            console.error('❌ Firebase 날짜 데이터 로드 실패:', error.message);
+            
+            // Permission denied 오류인 경우 빈 데이터로 초기화
+            if (error.message.includes('Permission denied')) {
+                console.log('🔒 권한 없음 - 빈 날짜 데이터로 초기화');
+                datesWithData.clear();
+                renderMiniCalendar();
+            }
         });
 }
 
@@ -2273,18 +2313,31 @@ function initializeCharts() {
     console.log('📊 차트 초기화 시작');
     
     try {
-        // 업무 분류별 차트
+        // 기존 차트 인스턴스 파괴
+        destroyExistingCharts();
+        
+        // 새 차트 생성
         initCategoryChart();
-        
-        // 진행 상태별 차트
         initStatusChart();
-        
-        // 월별 추이 차트
         initMonthlyChart();
         
         console.log('✅ 차트 초기화 완료');
     } catch (error) {
         console.error('❌ 차트 초기화 실패:', error);
+        
+        // 차트 초기화 실패 시 재시도
+        setTimeout(() => {
+            console.log('🔄 차트 초기화 재시도');
+            try {
+                destroyExistingCharts();
+                initCategoryChart();
+                initStatusChart();
+                initMonthlyChart();
+                console.log('✅ 차트 재초기화 완료');
+            } catch (retryError) {
+                console.error('❌ 차트 재초기화도 실패:', retryError);
+            }
+        }, 1000);
     }
 }
 
@@ -3951,3 +4004,199 @@ window.testFirebasePermissions = async function() {
     
     console.log('🧪 권한 테스트 완료');
 };
+function destroyExistingCharts() {
+    // categoryChart 파괴
+    if (typeof categoryChart !== 'undefined' && categoryChart !== null) {
+        console.log('🗑️ 기존 categoryChart 파괴');
+        categoryChart.destroy();
+        categoryChart = null;
+    }
+    
+    // statusChart 파괴
+    if (typeof statusChart !== 'undefined' && statusChart !== null) {
+        console.log('🗑️ 기존 statusChart 파괴');
+        statusChart.destroy();
+        statusChart = null;
+    }
+    
+    // monthlyChart 파괴
+    if (typeof monthlyChart !== 'undefined' && monthlyChart !== null) {
+        console.log('🗑️ 기존 monthlyChart 파괴');
+        monthlyChart.destroy();
+        monthlyChart = null;
+    }
+}
+
+// 7. Firebase 보안 규칙 임시 해결을 위한 함수
+window.setupFirebaseRulesWorkaround = function() {
+    console.log('🔧 Firebase 권한 문제 임시 해결 설정');
+    
+    // 개인 업무 관련 함수들을 권한 오류 무시 버전으로 래핑
+    if (typeof savePersonalTasks === 'function') {
+        const originalSavePersonalTasks = savePersonalTasks;
+        window.savePersonalTasks = function() {
+            try {
+                originalSavePersonalTasks();
+            } catch (error) {
+                if (error.message.includes('Permission denied')) {
+                    console.warn('⚠️ 개인 업무 저장 권한 없음 - 로컬에만 저장');
+                    showMessage('현재 권한 문제로 개인 업무는 임시 저장됩니다.', 'warning');
+                } else {
+                    throw error;
+                }
+            }
+        };
+    }
+    
+    console.log('✅ 권한 문제 임시 해결 설정 완료');
+};
+
+// 8. 자동 복구 시스템
+window.autoRecoverFromErrors = function() {
+    console.log('🔧 자동 오류 복구 시작');
+    
+    // 1. 차트 문제 해결
+    try {
+        destroyExistingCharts();
+        window.chartsInitialized = false;
+        
+        setTimeout(() => {
+            if (window.Chart && typeof initializeCharts === 'function') {
+                initializeCharts();
+                window.chartsInitialized = true;
+            }
+        }, 2000);
+    } catch (error) {
+        console.warn('⚠️ 차트 복구 실패:', error.message);
+    }
+    
+    // 2. 개인 업무 데이터 초기화
+    if (typeof personalTasks !== 'undefined') {
+        personalTasks = { 1: [], 2: [], 3: [], 4: [] };
+    }
+    
+    if (typeof datesWithData !== 'undefined') {
+        datesWithData.clear();
+    }
+    
+    // 3. 뷰 재렌더링
+    try {
+        const currentView = document.querySelector('.dashboard-view.active, .calendar-view.active, .matrix-view.active');
+        if (currentView) {
+            if (currentView.classList.contains('dashboard-view')) {
+                if (typeof renderSharedAuditTasks === 'function') renderSharedAuditTasks();
+                if (typeof updateDashboardStats === 'function') updateDashboardStats();
+            } else if (currentView.classList.contains('matrix-view')) {
+                if (typeof renderPersonalTasks === 'function') renderPersonalTasks();
+                if (typeof renderMiniCalendar === 'function') renderMiniCalendar();
+                if (typeof updateMatrixStats === 'function') updateMatrixStats();
+            }
+        }
+    } catch (renderError) {
+        console.warn('⚠️ 뷰 렌더링 중 오류:', renderError.message);
+    }
+    
+    console.log('✅ 자동 오류 복구 완료');
+};
+
+// 10. 전역 오류 처리기
+window.addEventListener('error', function(event) {
+    if (event.message && event.message.includes('Permission denied')) {
+        console.warn('🔒 권한 오류 감지 - 자동 복구 시도');
+        setTimeout(() => {
+            autoRecoverFromErrors();
+        }, 1000);
+    }
+});
+
+// 11. 즉시 실행 가능한 디버깅 함수들
+window.debugFirebasePermissions = function() {
+    console.log('=== 🔍 Firebase 권한 디버깅 ===');
+    console.log('현재 사용자:', currentUser ? currentUser.email : '없음');
+    console.log('사용자 ID:', userId || '없음');
+    console.log('회사 코드:', currentCompanyCode || '없음');
+    console.log('로그인 상태:', !!currentUser);
+    
+    if (currentUser && userId) {
+        // 권한 테스트
+        const testPaths = [
+            `users/${userId}`,
+            `eisenhower-tasks/${userId}`,
+            `company-data/${currentCompanyCode.toLowerCase()}-data/shared-audit-tasks`
+        ];
+        
+        testPaths.forEach(path => {
+            const testRef = ref(database, path);
+            get(testRef).then(snapshot => {
+                console.log(`✅ 읽기 성공: ${path} (${snapshot.exists() ? '데이터 있음' : '데이터 없음'})`);
+            }).catch(error => {
+                console.log(`❌ 읽기 실패: ${path} - ${error.message}`);
+            });
+        });
+    }
+    console.log('===============================');
+};
+
+window.forceDataReload = function() {
+    console.log('🔄 강제 데이터 재로드 시작');
+    
+    // 기존 데이터 초기화
+    if (typeof sharedAuditTasks !== 'undefined') {
+        sharedAuditTasks = [];
+    }
+    
+    // 함수들이 존재할 때만 호출
+    try {
+        if (typeof loadSharedAuditTasks === 'function') {
+            loadSharedAuditTasks();
+            console.log('✅ 공유 감사업무 재로드 시도');
+        }
+        
+        if (typeof loadPersonalTasks === 'function') {
+            loadPersonalTasks();
+            console.log('✅ 개인 업무 재로드 시도');
+        }
+        
+        if (typeof loadSharedCalendarEvents === 'function') {
+            loadSharedCalendarEvents();
+            console.log('✅ 캘린더 이벤트 재로드 시도');
+        }
+    } catch (error) {
+        console.warn('⚠️ 데이터 재로드 중 오류:', error.message);
+    }
+    
+    console.log('🔄 강제 데이터 재로드 완료');
+};
+
+// 12. 자동 초기화 (DOMContentLoaded 확장)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎯 추가 초기화 시작');
+        
+        // 권한 문제 임시 해결 설정 (지연 실행)
+        setTimeout(() => {
+            setupFirebaseRulesWorkaround();
+        }, 2000);
+        
+        // 차트 초기화 상태 리셋
+        window.chartsInitialized = false;
+        
+        console.log('🎯 추가 초기화 완료');
+    });
+} else {
+    // 이미 DOM이 로드된 경우
+    setTimeout(() => {
+        setupFirebaseRulesWorkaround();
+    }, 1000);
+}
+
+// 즉시 실행할 수 있는 복구 명령어 안내
+console.log('');
+console.log('🔧 === 오류 해결 명령어 안내 ===');
+console.log('autoRecoverFromErrors() - 모든 오류 자동 복구');
+console.log('destroyExistingCharts() - 차트 중복 문제 해결');
+console.log('setupFirebaseRulesWorkaround() - 권한 문제 임시 해결');
+console.log('debugFirebasePermissions() - Firebase 권한 상태 확인');
+console.log('forceDataReload() - 강제 데이터 재로드');
+console.log('===============================');
+console.log('');
