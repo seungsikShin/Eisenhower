@@ -100,73 +100,121 @@ function getUserRoleDisplay(userEmail) {
 // =============================================
 
 // 인증 상태 변화 감지
-onAuthStateChanged(auth, (user) => {
-    console.log('인증 상태 변화 감지:', user ? user.email : '로그아웃');
+onAuthStateChanged(auth, async (user) => {
+    console.log('🔐 인증 상태 변화 감지:', user ? user.email : '로그아웃');
     
     if (user) {
         currentUser = user;
         userId = user.uid;
         
-        // 사용자 데이터 로드 후 메인 화면 표시
-        loadUserData(user.uid).then(() => {
-            // 모든 사용자 프로필도 로드
-            loadAllUserProfiles().then(() => {
-                showMainApp();
-                
-                // 데이터 로드
-                setTimeout(() => {
-                    setupCompanySelector();
-                    loadSharedAuditTasks();
-                    loadPersonalTasks();
-                    loadDatesWithData();
-                    renderMiniCalendar();
-                    console.log('모든 데이터 로드 완료');
-                }, 100);
-                // 알림 센터 리스너 연결
-                setupNotificationListener();
-            });
-        }).catch((error) => {
-            console.error('사용자 데이터 로드 실패:', error);
-            showMainApp(); // 에러가 있어도 메인 화면은 표시
-        });
+        console.log('✅ 사용자 로그인됨:', user.email);
         
-        console.log('사용자 로그인됨:', user.email);
+        // 사용자 이름 설정 (권한 오류 무시)
+        const userNameEl = document.getElementById('user-name');
+        if (userNameEl) {
+            // 이메일에서 @ 앞부분을 이름으로 사용
+            const nameFromEmail = user.email.split('@')[0];
+            userNameEl.textContent = nameFromEmail;
+            currentUser.displayName = nameFromEmail;
+        }
+        
+        // 사용자 프로필 초기화 (권한 오류 무시)
+        window.userProfiles = {};
+        window.userProfiles[user.email] = {
+            email: user.email,
+            name: user.email.split('@')[0],
+            userId: user.uid
+        };
+        
+        // 메인 화면 표시
+        showMainApp();
+        
+        // 데이터 로드 (권한 오류가 발생해도 계속 진행)
+        setTimeout(() => {
+            try {
+                setupCompanySelector();
+                loadSharedAuditTasks();
+                loadPersonalTasks();
+                loadDatesWithData();
+                renderMiniCalendar();
+                console.log('✅ 모든 데이터 로드 시도 완료');
+                
+                // 알림 리스너도 시도 (실패해도 무시)
+                try {
+                    setupNotificationListener();
+                } catch (notifError) {
+                    console.warn('⚠️ 알림 기능 비활성화:', notifError.message);
+                }
+            } catch (error) {
+                console.warn('⚠️ 일부 기능 로드 실패:', error.message);
+            }
+        }, 100);
+        
     } else {
         currentUser = null;
         userId = null;
         showAuthScreen();
-        console.log('사용자 로그아웃됨');
+        console.log('🚪 사용자 로그아웃됨');
     }
 });
-
 // 사용자 데이터 로드 함수
 async function loadUserData(uid) {
     try {
+        console.log('📱 사용자 데이터 로드 시도:', uid);
+        
+        // 사용자 데이터 읽기 시도
         const userRef = ref(database, `users/${uid}`);
         const snapshot = await get(userRef);
         
+        const userNameEl = document.getElementById('user-name');
+        
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            const userNameEl = document.getElementById('user-name');
+            console.log('✅ 사용자 데이터 로드 성공:', userData);
+            
             if (userNameEl) {
                 userNameEl.textContent = userData.name || currentUser.email;
             }
             currentUser.displayName = userData.name;
         } else {
+            console.log('ℹ️ 사용자 데이터가 없음, 기본값 사용');
+            
+            if (userNameEl) {
+                userNameEl.textContent = currentUser.email;
+            }
+            
+            // 사용자 데이터가 없으면 생성 시도
+            try {
+                await set(userRef, {
+                    email: currentUser.email,
+                    name: currentUser.displayName || currentUser.email.split('@')[0],
+                    createdAt: new Date().toISOString()
+                });
+                console.log('✅ 새 사용자 데이터 생성 완료');
+            } catch (createError) {
+                console.warn('⚠️ 사용자 데이터 생성 실패 (권한 부족):', createError.message);
+            }
+        }
+        
+        return Promise.resolve();
+        
+    } catch (error) {
+        console.error('❌ 사용자 데이터 로드 오류:', error.message);
+        
+        // 권한 오류인 경우 기본값으로 처리
+        if (error.message.includes('Permission denied')) {
+            console.log('🔒 권한 없음 - 기본값으로 처리');
+            
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) {
                 userNameEl.textContent = currentUser.email;
             }
+            currentUser.displayName = currentUser.email.split('@')[0];
+            
+            return Promise.resolve(); // 오류가 있어도 계속 진행
         }
-        console.log('사용자 데이터 로드 성공');
-        return Promise.resolve();
-    } catch (error) {
-        console.error('사용자 데이터 로드 오류:', error);
-        const userNameEl = document.getElementById('user-name');
-        if (userNameEl) {
-            userNameEl.textContent = currentUser.email;
-        }
-        return Promise.resolve(); // 에러가 있어도 resolve
+        
+        throw error; // 다른 오류는 상위로 전파
     }
 }
 
@@ -3275,17 +3323,40 @@ function renderWorkTableWithComments(workList, commentsByWorkId) {
 
 // 모든 사용자 프로필을 한 번에 로드해서 window.userProfiles에 저장
 async function loadAllUserProfiles() {
-  const usersRef = ref(database, 'users');
-  const snapshot = await get(usersRef);
-  window.userProfiles = {};
-  if (snapshot.exists()) {
-    const users = snapshot.val();
-    Object.values(users).forEach(user => {
-      if (user.email) {
-        window.userProfiles[user.email] = user;
-      }
-    });
-  }
+    try {
+        console.log('👥 모든 사용자 프로필 로드 시도');
+        
+        const usersRef = ref(database, 'users');
+        const snapshot = await get(usersRef);
+        
+        window.userProfiles = {};
+        
+        if (snapshot.exists()) {
+            const users = snapshot.val();
+            Object.values(users).forEach(user => {
+                if (user.email) {
+                    window.userProfiles[user.email] = user;
+                }
+            });
+            console.log('✅ 사용자 프로필 로드 성공:', Object.keys(window.userProfiles).length, '명');
+        } else {
+            console.log('ℹ️ 사용자 프로필 데이터가 없음');
+        }
+        
+        return Promise.resolve();
+        
+    } catch (error) {
+        console.error('❌ 사용자 프로필 로드 오류:', error.message);
+        
+        // 권한 오류인 경우 빈 객체로 초기화
+        if (error.message.includes('Permission denied')) {
+            console.log('🔒 권한 없음 - 빈 프로필로 초기화');
+            window.userProfiles = {};
+            return Promise.resolve();
+        }
+        
+        throw error;
+    }
 }
 
 // ========== @멘션 자동완성 드롭다운 기능 ========== //
@@ -3841,3 +3912,42 @@ function reloadCompanyData() {
     renderMiniCalendar();
     // 대시보드/매트릭스/캘린더 등 뷰 갱신 필요시 추가
 }
+// 디버깅을 위한 권한 테스트 함수
+window.testFirebasePermissions = async function() {
+    if (!currentUser) {
+        console.log('❌ 로그인이 필요합니다');
+        return;
+    }
+    
+    console.log('🧪 Firebase 권한 테스트 시작');
+    console.log('현재 사용자:', currentUser.email, 'UID:', userId);
+    
+    // 1. 사용자 데이터 읽기 테스트
+    try {
+        const userRef = ref(database, `users/${userId}`);
+        const snapshot = await get(userRef);
+        console.log('✅ 사용자 데이터 읽기 성공:', snapshot.exists());
+    } catch (error) {
+        console.log('❌ 사용자 데이터 읽기 실패:', error.message);
+    }
+    
+    // 2. 사용자 데이터 쓰기 테스트
+    try {
+        const testRef = ref(database, `users/${userId}/lastLogin`);
+        await set(testRef, new Date().toISOString());
+        console.log('✅ 사용자 데이터 쓰기 성공');
+    } catch (error) {
+        console.log('❌ 사용자 데이터 쓰기 실패:', error.message);
+    }
+    
+    // 3. 회사 데이터 읽기 테스트
+    try {
+        const companyRef = ref(database, 'company-data/okh-data/shared-audit-tasks');
+        const snapshot = await get(companyRef);
+        console.log('✅ 회사 데이터 읽기 성공:', snapshot.exists());
+    } catch (error) {
+        console.log('❌ 회사 데이터 읽기 실패:', error.message);
+    }
+    
+    console.log('🧪 권한 테스트 완료');
+};
