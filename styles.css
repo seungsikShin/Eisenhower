@@ -4377,3 +4377,90 @@ body, .sunflower-light, h1, h2, h3, h4, h5, h6, .stat-card, .work-list-header, .
         gap: 8px;
     }
 }
+/***** Simple Glass Theme — drop-in override *****/
+
+/* 팔레트(원하면 값만 수정) */
+:root{
+  --primary-dark: #0b1629;
+  --primary-mid:  #0f2749;
+  --primary-blue: #0066cc;
+  --accent-blue:  #00a0e9;
+
+  --glass-bg:     rgba(255,255,255,.08);
+  --glass-border: rgba(255,255,255,.15);
+  --glass-shadow: 0 8px 24px rgba(0,0,0,.30);
+  --text-soft:    rgba(255,255,255,.85);
+}
+
+/* 배경: 네이비 그라데이션 */
+html, body{
+  background: linear-gradient(135deg,var(--primary-dark),var(--primary-mid)) !important;
+  color:#fff;
+}
+
+/* 상단 헤더 바를 살짝 유리 느낌으로 */
+header, .header{
+  background: rgba(0,0,0,.2) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+header h1, .header h1{ font-weight:700; }
+header nav a, .header nav a{ color:#fff; opacity:.9; text-decoration:none; }
+header nav a:hover, .header nav a:hover{ color: var(--accent-blue); opacity:1; }
+
+/* 공통 카드(글래스) */
+.card, .panel, .widget, .tile{
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--glass-shadow) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: transform .25s ease, box-shadow .25s ease;
+  color: var(--text-soft);
+}
+.card:hover, .panel:hover, .widget:hover, .tile:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+}
+.card h2, .panel h2, .widget h2{ color:#fff; font-weight:700; }
+
+/* 버튼 */
+.btn, button.primary{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:10px 20px; border-radius:25px; border:0;
+  background: linear-gradient(135deg,var(--primary-blue),var(--accent-blue));
+  color:#fff; font-weight:600; cursor:pointer; text-decoration:none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn:hover, button.primary:hover{
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.24);
+}
+
+/* 배지 */
+.badge, .chip{
+  display:inline-block; padding:4px 12px; border-radius:12px;
+  background: rgba(255,255,255,.18); color:#fff; font-weight:600; font-size:.85rem;
+}
+
+/* 테이블도 살짝 글래스 질감 */
+.table-container, table.data-table{
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px; overflow:hidden; box-shadow: var(--glass-shadow);
+}
+table.data-table th, .table th{
+  background: rgba(255,255,255,.06); color:#fff; font-weight:700;
+}
+table.data-table td, .table td{ color: var(--text-soft); }
+
+/* 섹션 컨테이너 간격 감성 업 */
+.container, .dashboard, .content{
+  padding: 32px 40px;
+  gap: 20px;
+}
+
