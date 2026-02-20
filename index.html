@@ -7,22 +7,24 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Sunflower:wght@500&display=swap');
-      .sunflower-medium {
-        font-family: "Sunflower", sans-serif;
-        font-weight: 500;
-        font-style: normal;
-      }
-    </style>
 </head>
-<body class="sunflower-light">
-    <!-- 로그인/회원가입 화면 -->
+<body>
+    <!-- ========== 로그인/회원가입 화면 ========== -->
     <div id="auth-container" class="auth-container">
         <div class="auth-card">
-            <div class="auth-logo">🎯</div>
+            <div class="auth-logo-wrap">
+                <div class="auth-logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#111"/>
+                        <path d="M8 22L16 10L24 22" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="16" cy="18" r="2" fill="#F97316"/>
+                    </svg>
+                </div>
+                <span class="auth-logo-text">AUDIT MATRIX</span>
+            </div>
             <h1 class="auth-title">통합 감사업무 시스템</h1>
             <p class="auth-subtitle">팀 협업과 개인 생산성을 하나로</p>
             
@@ -31,9 +33,11 @@
             <!-- 로그인 폼 -->
             <form id="login-form" class="auth-form">
                 <div class="form-group">
+                    <label class="form-label">이메일</label>
                     <input type="email" id="login-email" class="form-input" placeholder="이메일을 입력하세요" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">비밀번호</label>
                     <input type="password" id="login-password" class="form-input" placeholder="비밀번호를 입력하세요" required>
                 </div>
                 <button type="submit" id="login-btn" class="auth-btn">
@@ -44,15 +48,19 @@
             <!-- 회원가입 폼 -->
             <form id="signup-form" class="auth-form" style="display: none;">
                 <div class="form-group">
+                    <label class="form-label">이름</label>
                     <input type="text" id="signup-name" class="form-input" placeholder="이름을 입력하세요" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">이메일</label>
                     <input type="email" id="signup-email" class="form-input" placeholder="이메일을 입력하세요" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">비밀번호</label>
                     <input type="password" id="signup-password" class="form-input" placeholder="비밀번호를 입력하세요 (6자 이상)" required minlength="6">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">비밀번호 확인</label>
                     <input type="password" id="signup-confirm" class="form-input" placeholder="비밀번호를 다시 입력하세요" required minlength="6">
                 </div>
                 <button type="submit" id="signup-btn" class="auth-btn">
@@ -67,114 +75,165 @@
         </div>
     </div>
 
-    <!-- 메인 애플리케이션 화면 -->
+    <!-- ========== 메인 애플리케이션 화면 ========== -->
     <div id="main-app" class="main-app">
-        <div class="container">
-            <!-- 헤더 -->
-            <div class="header">
-                <div class="header-left">
-                    <h1>통합 감사업무 시스템</h1>
-                    <p>팀 협업과 개인 업무 관리를 위한 통합 플랫폼</p>
-                </div>
-                <div class="header-right">
-                    <select id="company-selector" class="company-selector" style="margin-right:18px;min-width:110px;max-width:180px;">
-                        <option value="OKH">오케이홀딩스</option>
-                        <option value="OFI">오케이에프아이</option>
-                        <option value="OCI">오케이씨아이</option>
-                    </select>
-                    <div class="nav-tabs">
-                        <button class="nav-tab active" onclick="switchView('dashboard')">📊 팀 대시보드</button>
-                        <button class="nav-tab" onclick="switchView('calendar')">📅 팀 일정</button>
-                        <button class="nav-tab" onclick="switchView('matrix')">🎯 내 매트릭스</button>
-                    </div>
-                    <div class="notification-center">
-                        <button id="notification-bell" class="notification-bell" onclick="toggleNotificationDropdown()">
-                            <span class="bell-icon">🔔</span>
-                            <span id="notification-count" class="notification-count" style="display:none;">0</span>
-                        </button>
-                        <div id="notification-dropdown" class="notification-dropdown">
-                            <div class="dropdown-header">
-                                <span>알림</span>
-                                <button class="mark-all-read-btn" onclick="markAllNotificationsRead(event)">모두 읽음</button>
-                            </div>
-                            <div id="notification-list" class="notification-list">
-                                <div class="no-notifications">알림이 없습니다.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user-info">
-                        <span id="user-name" class="user-email"></span>
-                        <button id="logout-btn" class="logout-btn" onclick="logout()">로그아웃</button>
-                    </div>
+        <!-- 탑 네비게이션 바 -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#111"/>
+                        <path d="M8 22L16 10L24 22" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="16" cy="18" r="2" fill="#F97316"/>
+                    </svg>
+                    <span class="nav-logo-text">AUDIT MATRIX</span>
                 </div>
             </div>
+            <div class="nav-center">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="switchView('dashboard')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                        대시보드
+                    </button>
+                    <button class="nav-tab" onclick="switchView('calendar')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="6.5" x2="14" y2="6.5" stroke="currentColor" stroke-width="1.5"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        팀 일정
+                    </button>
+                    <button class="nav-tab" onclick="switchView('matrix')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/><line x1="8" y1="2" x2="8" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        매트릭스
+                    </button>
+                </div>
+            </div>
+            <div class="nav-right">
+                <select id="company-selector" class="company-selector">
+                    <option value="OKH">오케이홀딩스</option>
+                    <option value="OFI">오케이에프아이</option>
+                    <option value="OCI">오케이씨아이</option>
+                </select>
+                <div class="notification-center">
+                    <button id="notification-bell" class="notification-bell" onclick="toggleNotificationDropdown()">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 6.75a4.5 4.5 0 10-9 0c0 5.25-2.25 6.75-2.25 6.75h13.5s-2.25-1.5-2.25-6.75M10.3 15.75a1.5 1.5 0 01-2.6 0"/></svg>
+                        <span id="notification-count" class="notification-count" style="display:none;">0</span>
+                    </button>
+                    <div id="notification-dropdown" class="notification-dropdown">
+                        <div class="dropdown-header">
+                            <span>알림</span>
+                            <button class="mark-all-read-btn" onclick="markAllNotificationsRead(event)">모두 읽음</button>
+                        </div>
+                        <div id="notification-list" class="notification-list">
+                            <div class="no-notifications">알림이 없습니다.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="#fff"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>
+                    </div>
+                    <span id="user-name" class="user-email"></span>
+                    <button id="logout-btn" class="logout-btn" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+        </header>
 
-            <!-- 대시보드 배경 -->
+        <!-- 컨텐츠 영역 -->
+        <div class="container">
             <div class="dashboard-bg">
+                <!-- ========== 대시보드 뷰 ========== -->
                 <div id="dashboard-view" class="dashboard-view active">
-                    <!-- 대시보드 메인: 통계+차트 -->
-                    <div class="dashboard-main">
-                        <!-- 왼쪽: sticky 통계 카드 -->
-                        <div class="stats-summary">
-                            <div class="stats-section">
-                                <div class="stat-card">
-                                    <h3>📋 총 업무</h3>
-                                    <span class="count" id="total-work-count">0</span>
-                                </div>
-                                <div class="stat-card">
-                                    <h3>🔄 진행중</h3>
-                                    <span class="count" id="progress-work-count">0</span>
-                                </div>
-                                <div class="stat-card">
-                                    <h3>✅ 완료</h3>
-                                    <span class="count" id="completed-work-count">0</span>
-                                </div>
-                                <div class="stat-card">
-                                    <h3>👥 내 업무</h3>
-                                    <span class="count" id="my-work-count">0</span>
-                                </div>
+                    <!-- 페이지 타이틀 -->
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">감사업무 대시보드</h1>
+                            <p class="page-subtitle">팀 협업과 개인 업무 관리를 위한 통합 플랫폼</p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn-secondary" onclick="exportToCSV()">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12l4 2 4-2M4 8l4 2 4-2M4 4l4 2 4-2"/></svg>
+                                CSV 내보내기
+                            </button>
+                            <button class="btn-primary" onclick="showWorkForm()">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+                                업무 등록
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 통계 카드 그리드 (벤토박스) -->
+                    <div class="bento-grid stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><line x1="7" y1="8" x2="13" y2="8"/><line x1="7" y1="12" x2="11" y2="12"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">총 업무</span>
+                                <span class="count" id="total-work-count">0</span>
                             </div>
                         </div>
-                        <!-- 오른쪽: 차트 카드 -->
-                        <div class="charts-section">
-                            <div class="chart-container">
-                                <div class="chart-card">
-                                    <div class="chart-header">
-                                        <h3>📊 업무 분류별 현황</h3>
-                                    </div>
-                                    <div class="chart-content">
-                                        <canvas id="categoryChart" width="400" height="200"></canvas>
-                                    </div>
-                                </div>
-                                <div class="chart-card">
-                                    <div class="chart-header">
-                                        <h3>📈 진행 상태별 현황</h3>
-                                    </div>
-                                    <div class="chart-content">
-                                        <canvas id="statusChart" width="400" height="200"></canvas>
-                                    </div>
-                                </div>
+                        <div class="stat-card">
+                            <div class="stat-icon amber">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><polyline points="10,6 10,10 13,12"/></svg>
                             </div>
-                            <div class="chart-container">
-                                <div class="chart-card wide">
-                                    <div class="chart-header">
-                                        <h3>📅 월별 업무 추이</h3>
-                                    </div>
-                                    <div class="chart-content">
-                                        <canvas id="monthlyChart" width="800" height="300"></canvas>
-                                    </div>
-                                </div>
+                            <div class="stat-info">
+                                <span class="stat-label">진행중</span>
+                                <span class="count" id="progress-work-count">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><polyline points="7,10 9,12 13,8"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">완료</span>
+                                <span class="count" id="completed-work-count">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="4"/><circle cx="14" cy="8" r="4"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">내 업무</span>
+                                <span class="count" id="my-work-count">0</span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 차트 섹션 (벤토박스) -->
+                    <div class="bento-grid charts-grid">
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3>업무 분류별 현황</h3>
+                                <button class="card-menu">···</button>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="categoryChart" width="400" height="220"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3>진행 상태별 현황</h3>
+                                <button class="card-menu">···</button>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="statusChart" width="400" height="220"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card wide">
+                            <div class="card-header">
+                                <h3>월별 업무 추이</h3>
+                                <button class="card-menu">···</button>
+                            </div>
+                            <div class="chart-content">
+                                <canvas id="monthlyChart" width="800" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 업무 목록 섹션 -->
                     <div class="work-list-section">
                         <div class="work-list-header">
-                            <h2>📋 감사업무 목록</h2>
-                            <div class="action-buttons">
-                                <button class="btn-csv" onclick="exportToCSV()">📄 CSV 내보내기</button>
-                                <button class="btn-new" onclick="showWorkForm()">➕ 업무 등록</button>
-                            </div>
+                            <h2>감사업무 목록</h2>
                         </div>
                         
                         <!-- 상태 필터 -->
@@ -204,7 +263,7 @@
                                 </thead>
                                 <tbody id="work-table-body">
                                     <tr>
-                                        <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                                        <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">
                                             등록된 업무가 없습니다. 새 업무를 등록해주세요.
                                         </td>
                                     </tr>
@@ -215,11 +274,13 @@
 
                     <!-- 업무 등록 폼 -->
                     <div class="work-form" id="work-form">
-                        <h3>📝 새 감사업무 등록</h3>
+                        <div class="card-header">
+                            <h3>새 감사업무 등록</h3>
+                        </div>
                         <form id="work-form-element">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="work-category">업무 분류</label>
+                                    <label for="work-category" class="form-label">업무 분류</label>
                                     <select id="work-category" class="form-select" required>
                                         <option value="">선택하세요</option>
                                         <option value="일상감사">일상감사</option>
@@ -229,9 +290,8 @@
                                         <option value="기타">기타</option>
                                     </select>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="work-status">진행 상태</label>
+                                    <label for="work-status" class="form-label">진행 상태</label>
                                     <select id="work-status" class="form-select" required>
                                         <option value="계획수립중">계획수립중</option>
                                         <option value="자료수집중">자료수집중</option>
@@ -241,43 +301,35 @@
                                         <option value="보고완료">보고완료</option>
                                     </select>
                                 </div>
-
                                 <div class="form-group full-width">
-                                    <label for="work-name">업무명</label>
+                                    <label for="work-name" class="form-label">업무명</label>
                                     <input type="text" id="work-name" class="form-input" placeholder="업무명을 입력하세요" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="target-dept">대상 부서</label>
+                                    <label for="target-dept" class="form-label">대상 부서</label>
                                     <input type="text" id="target-dept" class="form-input" placeholder="대상 부서를 입력하세요" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="responsible-person">담당자</label>
+                                    <label for="responsible-person" class="form-label">담당자</label>
                                     <input type="text" id="responsible-person" class="form-input" placeholder="담당자명을 입력하세요" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="start-date">시작일자</label>
+                                    <label for="start-date" class="form-label">시작일자</label>
                                     <input type="date" id="start-date" class="form-input" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label for="end-date">종료일자</label>
+                                    <label for="end-date" class="form-label">종료일자</label>
                                     <input type="date" id="end-date" class="form-input" required>
                                 </div>
-
                                 <div class="form-group full-width">
-                                    <label for="work-description">업무 설명</label>
+                                    <label for="work-description" class="form-label">업무 설명</label>
                                     <textarea id="work-description" class="form-textarea" placeholder="업무에 대한 상세 설명을 입력하세요"></textarea>
                                 </div>
-
                                 <div class="form-group full-width">
-                                    <label for="key-issues">주요 지적사항</label>
+                                    <label for="key-issues" class="form-label">주요 지적사항</label>
                                     <textarea id="key-issues" class="form-textarea" placeholder="주요 지적사항을 입력하세요 (선택사항)"></textarea>
                                 </div>
                             </div>
-
                             <div class="form-buttons">
                                 <button type="button" class="btn-cancel" onclick="hideWorkForm()">취소</button>
                                 <button type="submit" class="btn-save">저장</button>
@@ -286,43 +338,74 @@
                     </div>
                 </div>
 
-                <!-- 팀 일정 뷰 -->
+                <!-- ========== 팀 일정 뷰 ========== -->
                 <div id="calendar-view" class="calendar-view">
-                    <!-- 일정 통계 섹션 -->
-                    <div class="calendar-stats-section">
-                        <div class="stat-card">
-                            <h3>📅 이번 달 일정</h3>
-                            <span class="count" id="month-events-count">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h3>📋 오늘 일정</h3>
-                            <span class="count" id="today-events-count">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h3>🌴 연차/휴가</h3>
-                            <span class="count" id="vacation-events-count">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h3>💼 업무 일정</h3>
-                            <span class="count" id="work-events-count">0</span>
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">팀 일정 관리</h1>
+                            <p class="page-subtitle">공유 캘린더로 팀 일정을 한눈에</p>
                         </div>
                     </div>
 
-                    <!-- 캘린더 컨트롤 섹션 -->
+                    <!-- 일정 통계 -->
+                    <div class="bento-grid stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">이번 달 일정</span>
+                                <span class="count" id="month-events-count">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon amber">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><line x1="10" y1="6" x2="10" y2="10"/><line x1="10" y1="10" x2="13" y2="10"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">오늘 일정</span>
+                                <span class="count" id="today-events-count">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3v14l5-3 5 3V3z"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">연차/휴가</span>
+                                <span class="count" id="vacation-events-count">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="14" height="10" rx="2"/><polyline points="3,6 10,12 17,6"/></svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">업무 일정</span>
+                                <span class="count" id="work-events-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 캘린더 컨트롤 -->
                     <div class="calendar-control-section">
                         <div class="calendar-header-controls">
                             <div class="calendar-navigation">
-                                <button class="nav-btn" onclick="changeCalendarMonth(-1)">‹</button>
+                                <button class="nav-btn" onclick="changeCalendarMonth(-1)">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="10,2 4,8 10,14"/></svg>
+                                </button>
                                 <h2 id="calendar-month-title">2025년 7월</h2>
-                                <button class="nav-btn" onclick="changeCalendarMonth(1)">›</button>
+                                <button class="nav-btn" onclick="changeCalendarMonth(1)">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,2 12,8 6,14"/></svg>
+                                </button>
                             </div>
                             <div class="calendar-actions">
-                                <button class="btn-today" onclick="goToToday()">오늘</button>
-                                <button class="btn-add-event" onclick="showEventForm()">➕ 일정 추가</button>
+                                <button class="btn-secondary" onclick="goToToday()">오늘</button>
+                                <button class="btn-primary" onclick="showEventForm()">+ 일정 추가</button>
                             </div>
                         </div>
 
-                        <!-- 필터링 컨트롤 -->
+                        <!-- 필터링 -->
                         <div class="calendar-filters">
                             <div class="filter-group">
                                 <label for="creator-filter">등록자별</label>
@@ -330,7 +413,6 @@
                                     <option value="">모든 등록자</option>
                                 </select>
                             </div>
-                            
                             <div class="filter-group">
                                 <label for="type-filter">일정 유형</label>
                                 <select id="type-filter" class="filter-select" onchange="applyCalendarFilters()">
@@ -345,7 +427,6 @@
                                     <option value="기타">기타</option>
                                 </select>
                             </div>
-                            
                             <div class="filter-group">
                                 <label for="date-filter">날짜 범위</label>
                                 <select id="date-filter" class="filter-select" onchange="applyCalendarFilters()">
@@ -356,47 +437,22 @@
                                     <option value="next-week">다음 주</option>
                                 </select>
                             </div>
-                            
                             <div class="filter-actions">
-                                <button class="btn-filter-reset" onclick="resetCalendarFilters()">🔄 초기화</button>
-                                <button class="btn-filter-toggle" onclick="toggleFilterPanel()">🔽 필터</button>
+                                <button class="btn-filter-reset" onclick="resetCalendarFilters()">초기화</button>
+                                <button class="btn-filter-toggle" onclick="toggleFilterPanel()">필터</button>
                             </div>
                         </div>
 
                         <!-- 색상 범례 -->
                         <div class="color-legend">
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #e53e3e;"></div>
-                                <span>연차/긴급</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #3182ce;"></div>
-                                <span>업무일정</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #38a169;"></div>
-                                <span>완료/성공</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #ed8936;"></div>
-                                <span>회식/모임</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #805ad5;"></div>
-                                <span>교육/세미나</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #d53f8c;"></div>
-                                <span>개인일정</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #718096;"></div>
-                                <span>휴가/휴무</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="color-dot" style="background: #319795;"></div>
-                                <span>출장/외근</span>
-                            </div>
+                            <div class="legend-item"><div class="color-dot" style="background: #e53e3e;"></div><span>연차/긴급</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #3182ce;"></div><span>업무일정</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #38a169;"></div><span>완료/성공</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #ed8936;"></div><span>회식/모임</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #805ad5;"></div><span>교육/세미나</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #d53f8c;"></div><span>개인일정</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #718096;"></div><span>휴가/휴무</span></div>
+                            <div class="legend-item"><div class="color-dot" style="background: #319795;"></div><span>출장/외근</span></div>
                         </div>
                     </div>
 
@@ -404,23 +460,28 @@
                     <div class="main-calendar-container">
                         <div class="calendar-grid-container">
                             <div class="calendar-weekdays">
-                                <div class="weekday">일</div>
+                                <div class="weekday sun">일</div>
                                 <div class="weekday">월</div>
                                 <div class="weekday">화</div>
                                 <div class="weekday">수</div>
                                 <div class="weekday">목</div>
                                 <div class="weekday">금</div>
-                                <div class="weekday">토</div>
+                                <div class="weekday sat">토</div>
                             </div>
-                            <div class="calendar-days" id="calendar-days">
-                                <!-- 달력 날짜들이 동적으로 생성됩니다 -->
-                            </div>
+                            <div class="calendar-days" id="calendar-days"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 아이젠하워 매트릭스 뷰 -->
+                <!-- ========== 아이젠하워 매트릭스 뷰 ========== -->
                 <div id="matrix-view" class="matrix-view">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">아이젠하워 매트릭스</h1>
+                            <p class="page-subtitle">업무 우선순위를 체계적으로 관리하세요</p>
+                        </div>
+                    </div>
+
                     <!-- 매트릭스 상단 컨트롤 -->
                     <div class="matrix-controls">
                         <div class="feature-cards">
@@ -433,30 +494,17 @@
                                         <button class="nav-btn small" onclick="changeOverviewMonth(1)">›</button>
                                     </div>
                                 </div>
-                                <div class="mini-calendar" id="mini-calendar">
-                                    <!-- 미니 캘린더가 여기에 생성됩니다 -->
-                                </div>
+                                <div class="mini-calendar" id="mini-calendar"></div>
                                 <div class="calendar-legend">
-                                    <div class="legend-item">
-                                        <div class="legend-dot has-data"></div>
-                                        <span>업무 있음</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot selected"></div>
-                                        <span>선택된 날짜</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot today"></div>
-                                        <span>오늘</span>
-                                    </div>
+                                    <div class="legend-item"><div class="legend-dot has-data"></div><span>업무 있음</span></div>
+                                    <div class="legend-item"><div class="legend-dot selected"></div><span>선택된 날짜</span></div>
+                                    <div class="legend-item"><div class="legend-dot today"></div><span>오늘</span></div>
                                 </div>
                             </div>
                             
                             <!-- 통계 카드 -->
                             <div class="stats-card">
-                                <div class="stats-header">
-                                    <h3>📊 오늘의 업무 통계</h3>
-                                </div>
+                                <div class="stats-header"><h3>오늘의 업무 통계</h3></div>
                                 <div class="stats-content">
                                     <div class="progress-ring">
                                         <svg class="progress-svg" width="80" height="80">
@@ -466,27 +514,16 @@
                                         <div class="progress-text" id="progress-text">0%</div>
                                     </div>
                                     <div class="stats-details">
-                                        <div class="stat-item">
-                                            <span class="stat-label">전체 업무</span>
-                                            <span class="stat-value" id="total-tasks">0</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-label">완료</span>
-                                            <span class="stat-value completed" id="completed-tasks">0</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="stat-label">진행 중</span>
-                                            <span class="stat-value pending" id="pending-tasks">0</span>
-                                        </div>
+                                        <div class="stat-item"><span class="stat-label">전체 업무</span><span class="stat-value" id="total-tasks">0</span></div>
+                                        <div class="stat-item"><span class="stat-label">완료</span><span class="stat-value completed" id="completed-tasks">0</span></div>
+                                        <div class="stat-item"><span class="stat-label">진행 중</span><span class="stat-value pending" id="pending-tasks">0</span></div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- 사분면별 현황 -->
                             <div class="quadrant-stats">
-                                <div class="stats-header">
-                                    <h3>🎯 사분면별 현황</h3>
-                                </div>
+                                <div class="stats-header"><h3>사분면별 현황</h3></div>
                                 <div class="quadrant-breakdown">
                                     <div class="breakdown-item q1">
                                         <div class="breakdown-icon">🚨</div>
@@ -536,7 +573,6 @@
 
                     <!-- 4사분면 매트릭스 -->
                     <div class="matrix-grid">
-                        <!-- 1사분면: 중요하고 긴급한 일 -->
                         <div class="quadrant quadrant-1" data-quadrant="1">
                             <div class="quadrant-header">
                                 <span class="quadrant-emoji">🚨</span>
@@ -544,13 +580,11 @@
                                 <div class="quadrant-subtitle">중요하고 긴급한 일</div>
                             </div>
                             <div class="task-input-container">
-                                <input type="text" class="task-input" placeholder="위기 상황이나 마감 임박한 중요 업무를 입력하세요..." onkeypress="handleTaskInput(event, 1)">
+                                <input type="text" class="task-input" placeholder="긴급 중요 업무 입력..." onkeypress="handleTaskInput(event, 1)">
                             </div>
                             <button class="add-task-btn" onclick="addTask(1)">+ 긴급 중요 업무 추가</button>
                             <ul class="task-list" id="tasks-1"></ul>
                         </div>
-
-                        <!-- 2사분면: 중요하지만 긴급하지 않은 일 -->
                         <div class="quadrant quadrant-2" data-quadrant="2">
                             <div class="quadrant-header">
                                 <span class="quadrant-emoji">📋</span>
@@ -558,13 +592,11 @@
                                 <div class="quadrant-subtitle">중요하지만 긴급하지 않은 일</div>
                             </div>
                             <div class="task-input-container">
-                                <input type="text" class="task-input" placeholder="장기 목표나 개발을 위한 중요한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 2)">
+                                <input type="text" class="task-input" placeholder="전략적 업무 입력..." onkeypress="handleTaskInput(event, 2)">
                             </div>
                             <button class="add-task-btn" onclick="addTask(2)">+ 전략적 업무 추가</button>
                             <ul class="task-list" id="tasks-2"></ul>
                         </div>
-
-                        <!-- 3사분면: 긴급하지만 중요하지 않은 일 -->
                         <div class="quadrant quadrant-3" data-quadrant="3">
                             <div class="quadrant-header">
                                 <span class="quadrant-emoji">🤝</span>
@@ -572,13 +604,11 @@
                                 <div class="quadrant-subtitle">긴급하지만 중요하지 않은 일</div>
                             </div>
                             <div class="task-input-container">
-                                <input type="text" class="task-input" placeholder="다른 사람에게 맡길 수 있는 급한 업무를 입력하세요..." onkeypress="handleTaskInput(event, 3)">
+                                <input type="text" class="task-input" placeholder="위임 가능 업무 입력..." onkeypress="handleTaskInput(event, 3)">
                             </div>
                             <button class="add-task-btn" onclick="addTask(3)">+ 위임 가능 업무 추가</button>
                             <ul class="task-list" id="tasks-3"></ul>
                         </div>
-
-                        <!-- 4사분면: 중요하지도 긴급하지도 않은 일 -->
                         <div class="quadrant quadrant-4" data-quadrant="4">
                             <div class="quadrant-header">
                                 <span class="quadrant-emoji">🗑️</span>
@@ -586,7 +616,7 @@
                                 <div class="quadrant-subtitle">중요하지도 긴급하지도 않은 일</div>
                             </div>
                             <div class="task-input-container">
-                                <input type="text" class="task-input" placeholder="제거하거나 최소화할 수 있는 업무를 입력하세요..." onkeypress="handleTaskInput(event, 4)">
+                                <input type="text" class="task-input" placeholder="제거 대상 업무 입력..." onkeypress="handleTaskInput(event, 4)">
                             </div>
                             <button class="add-task-btn" onclick="addTask(4)">+ 제거 대상 업무 추가</button>
                             <ul class="task-list" id="tasks-4"></ul>
@@ -597,51 +627,47 @@
         </div>
     </div>
 
+    <!-- ========== 모달들 (기존 ID 유지) ========== -->
+    
     <!-- 캘린더 모달 -->
-    <div id="calendar-modal" class="calendar-modal">
-        <div class="calendar-content">
-            <div class="calendar-header">
+    <div id="calendar-modal" class="modal-overlay calendar-modal">
+        <div class="modal-content calendar-content">
+            <div class="modal-header calendar-header">
                 <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
                 <h3 id="calendar-title">2025년 7월</h3>
                 <button class="nav-btn" onclick="changeMonth(1)">›</button>
                 <button class="close-btn" onclick="toggleCalendar()">✕</button>
             </div>
-            <div class="calendar-grid" id="calendar-grid">
-                <!-- 캘린더 날짜들이 여기에 동적으로 생성됩니다 -->
-            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
         </div>
     </div>
 
     <!-- 검색 결과 모달 -->
-    <div id="search-modal" class="search-modal">
-        <div class="search-content">
-            <div class="search-header">
+    <div id="search-modal" class="modal-overlay search-modal">
+        <div class="modal-content search-content">
+            <div class="modal-header search-header">
                 <h3>검색 결과</h3>
                 <button class="close-btn" onclick="toggleSearchModal()">✕</button>
             </div>
-            <div id="search-results" class="search-results">
-                <!-- 검색 결과가 여기에 표시됩니다 -->
-            </div>
+            <div id="search-results" class="search-results"></div>
         </div>
     </div>
 
     <!-- 일정 추가/편집 모달 -->
-    <div id="event-modal" class="event-modal">
-        <div class="event-modal-content">
-            <div class="event-modal-header">
+    <div id="event-modal" class="modal-overlay event-modal">
+        <div class="modal-content event-modal-content">
+            <div class="modal-header event-modal-header">
                 <h3 id="event-modal-title">새 일정 추가</h3>
                 <button class="close-btn" onclick="hideEventModal()">✕</button>
             </div>
-            
             <form id="event-form" class="event-form">
                 <div class="event-form-grid">
                     <div class="form-group full-width">
-                        <label for="event-title">일정 제목 *</label>
+                        <label for="event-title" class="form-label">일정 제목 *</label>
                         <input type="text" id="event-title" class="form-input" placeholder="일정 제목을 입력하세요" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="event-type">일정 유형</label>
+                        <label for="event-type" class="form-label">일정 유형</label>
                         <select id="event-type" class="form-select">
                             <option value="업무">업무일정</option>
                             <option value="연차">연차</option>
@@ -653,9 +679,8 @@
                             <option value="기타">기타</option>
                         </select>
                     </div>
-
                     <div class="form-group">
-                        <label>색상 선택</label>
+                        <label class="form-label">색상 선택</label>
                         <div class="color-picker">
                             <div class="color-option active" data-color="#e53e3e" data-bg="#fed7d7" style="background: #e53e3e;" title="빨간색"></div>
                             <div class="color-option" data-color="#3182ce" data-bg="#bee3f8" style="background: #3182ce;" title="파란색"></div>
@@ -667,38 +692,31 @@
                             <div class="color-option" data-color="#319795" data-bg="#b2f5ea" style="background: #319795;" title="청록색"></div>
                         </div>
                     </div>
-
                     <div class="form-group">
-                        <label for="event-start-date">시작 날짜 *</label>
+                        <label for="event-start-date" class="form-label">시작 날짜 *</label>
                         <input type="date" id="event-start-date" class="form-input" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="event-start-time">시작 시간</label>
+                        <label for="event-start-time" class="form-label">시작 시간</label>
                         <input type="time" id="event-start-time" class="form-input">
                     </div>
-
                     <div class="form-group">
-                        <label for="event-end-date">종료 날짜</label>
+                        <label for="event-end-date" class="form-label">종료 날짜</label>
                         <input type="date" id="event-end-date" class="form-input">
                     </div>
-
                     <div class="form-group">
-                        <label for="event-end-time">종료 시간</label>
+                        <label for="event-end-time" class="form-label">종료 시간</label>
                         <input type="time" id="event-end-time" class="form-input">
                     </div>
-
                     <div class="form-group full-width">
-                        <label for="event-description">일정 설명</label>
-                        <textarea id="event-description" class="form-textarea" placeholder="일정에 대한 상세 설명을 입력하세요 (선택사항)" rows="3"></textarea>
+                        <label for="event-description" class="form-label">일정 설명</label>
+                        <textarea id="event-description" class="form-textarea" placeholder="일정에 대한 상세 설명 (선택사항)" rows="3"></textarea>
                     </div>
-
                     <div class="form-group full-width">
-                        <label for="event-participants">참석자</label>
-                        <input type="text" id="event-participants" class="form-input" placeholder="참석자명을 입력하세요 (쉼표로 구분)">
+                        <label for="event-participants" class="form-label">참석자</label>
+                        <input type="text" id="event-participants" class="form-input" placeholder="참석자명 (쉼표로 구분)">
                     </div>
                 </div>
-
                 <div class="event-form-buttons">
                     <button type="button" class="btn-cancel" onclick="hideEventModal()">취소</button>
                     <button type="submit" class="btn-save-event">저장</button>
@@ -708,113 +726,67 @@
     </div>
 
     <!-- 일정 상세보기 모달 -->
-    <div id="event-detail-modal" class="event-detail-modal">
-        <div class="event-detail-content">
+    <div id="event-detail-modal" class="modal-overlay event-detail-modal">
+        <div class="modal-content event-detail-content">
             <div class="event-detail-header">
                 <div class="event-detail-color" id="event-detail-color"></div>
                 <h3 id="event-detail-title">일정 제목</h3>
                 <button class="close-btn" onclick="hideEventDetailModal()">✕</button>
             </div>
-            
             <div class="event-detail-body">
                 <div class="event-detail-info">
-                    <div class="info-item">
-                        <span class="info-label">유형:</span>
-                        <span id="event-detail-type">업무일정</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">날짜:</span>
-                        <span id="event-detail-date">2025-07-15</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">시간:</span>
-                        <span id="event-detail-time">09:00 - 18:00</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">등록자:</span>
-                        <span id="event-detail-creator">홍길동</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">참석자:</span>
-                        <span id="event-detail-participants">-</span>
-                    </div>
+                    <div class="info-item"><span class="info-label">유형:</span><span id="event-detail-type">업무일정</span></div>
+                    <div class="info-item"><span class="info-label">날짜:</span><span id="event-detail-date">2025-07-15</span></div>
+                    <div class="info-item"><span class="info-label">시간:</span><span id="event-detail-time">09:00 - 18:00</span></div>
+                    <div class="info-item"><span class="info-label">등록자:</span><span id="event-detail-creator">홍길동</span></div>
+                    <div class="info-item"><span class="info-label">참석자:</span><span id="event-detail-participants">-</span></div>
                 </div>
-                
                 <div class="event-detail-description">
                     <h4>상세 설명</h4>
                     <p id="event-detail-desc">상세 설명이 여기에 표시됩니다.</p>
                 </div>
-                
                 <div class="event-detail-actions">
-                    <button class="btn-edit-event" onclick="editEvent()">✏️ 수정</button>
-                    <button class="btn-delete-event" onclick="deleteEvent()">🗑️ 삭제</button>
+                    <button class="btn-edit-event" onclick="editEvent()">수정</button>
+                    <button class="btn-delete-event" onclick="deleteEvent()">삭제</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 업무 퀵뷰 모달 -->
-    <div id="work-quickview-modal" class="work-quickview-modal">
-        <div class="work-quickview-content">
-            <div class="work-quickview-header">
+    <div id="work-quickview-modal" class="modal-overlay work-quickview-modal">
+        <div class="modal-content work-quickview-content">
+            <div class="modal-header work-quickview-header">
                 <h3 id="quickview-work-title">업무 상세정보</h3>
                 <button class="close-btn" onclick="hideWorkQuickView()">✕</button>
             </div>
-            
             <div class="work-quickview-body">
-                <!-- 업무 기본 정보 -->
                 <div class="work-info-section">
                     <div class="work-info-grid">
-                        <div class="info-item">
-                            <span class="info-label">업무분류:</span>
-                            <span id="quickview-category">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">진행상태:</span>
-                            <span id="quickview-status" class="status-badge">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">대상부서:</span>
-                            <span id="quickview-target-dept">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">담당자:</span>
-                            <span id="quickview-responsible">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">감사기간:</span>
-                            <span id="quickview-period">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">등록자:</span>
-                            <span id="quickview-creator">-</span>
-                        </div>
+                        <div class="info-item"><span class="info-label">업무분류:</span><span id="quickview-category">-</span></div>
+                        <div class="info-item"><span class="info-label">진행상태:</span><span id="quickview-status" class="status-badge">-</span></div>
+                        <div class="info-item"><span class="info-label">대상부서:</span><span id="quickview-target-dept">-</span></div>
+                        <div class="info-item"><span class="info-label">담당자:</span><span id="quickview-responsible">-</span></div>
+                        <div class="info-item"><span class="info-label">감사기간:</span><span id="quickview-period">-</span></div>
+                        <div class="info-item"><span class="info-label">등록자:</span><span id="quickview-creator">-</span></div>
                     </div>
-                    
                     <div class="work-description" id="quickview-description-section" style="display: none;">
-                        <h4>📝 업무 설명</h4>
+                        <h4>업무 설명</h4>
                         <p id="quickview-description">-</p>
                     </div>
-                    
                     <div class="work-issues" id="quickview-issues-section" style="display: none;">
-                        <h4>⚠️ 주요 지적사항</h4>
+                        <h4>주요 지적사항</h4>
                         <p id="quickview-issues">-</p>
                     </div>
                 </div>
-                
-                <!-- 댓글 섹션 -->
                 <div class="quickview-comments-section">
                     <div class="comments-header">
-                        <h4>💬 댓글</h4>
+                        <h4>댓글</h4>
                         <span class="comments-count" id="quickview-comments-count">0개</span>
                     </div>
-                    
-                    <!-- 댓글 목록 -->
                     <div class="comments-list-compact" id="quickview-comments-list">
                         <div class="no-comments">아직 댓글이 없습니다.</div>
                     </div>
-                    
-                    <!-- 댓글 작성 -->
                     <div class="comment-form-compact">
                         <div class="comment-input-container-compact">
                             <textarea id="quickview-comment-input" class="comment-textarea-compact" placeholder="댓글을 입력하세요..." rows="2"></textarea>
@@ -822,31 +794,25 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 액션 버튼들 -->
                 <div class="quickview-actions">
                     <button class="btn-quickview-detail" onclick="openFullComments()">상세댓글 보기</button>
-                    <button class="btn-quickview-edit" onclick="editWorkFromQuickView()">✏️ 수정</button>
+                    <button class="btn-quickview-edit" onclick="editWorkFromQuickView()">수정</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 댓글 모달 -->
-    <div id="comment-modal" class="comment-modal">
-        <div class="comment-modal-content">
-            <div class="comment-modal-header">
+    <div id="comment-modal" class="modal-overlay comment-modal">
+        <div class="modal-content comment-modal-content">
+            <div class="modal-header comment-modal-header">
                 <h3 id="comment-work-title">업무명 - 댓글</h3>
                 <button class="close-btn" onclick="hideCommentModal()">✕</button>
             </div>
-            
             <div class="comment-modal-body">
-                <!-- 댓글 목록 -->
                 <div class="comments-list" id="comments-list">
                     <div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 남겨보세요!</div>
                 </div>
-                
-                <!-- 댓글 작성 -->
                 <div class="comment-form">
                     <div class="comment-input-container">
                         <textarea id="comment-input" class="comment-textarea" placeholder="댓글을 입력하세요..." rows="3"></textarea>
@@ -855,10 +821,8 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 변경 이력 -->
                 <div class="work-history-section">
-                    <h4>📋 업무 변경 이력</h4>
+                    <h4>업무 변경 이력</h4>
                     <div class="history-list" id="work-history-list">
                         <div class="no-history">아직 변경 이력이 없습니다.</div>
                     </div>
@@ -868,48 +832,44 @@
     </div>
 
     <!-- 사분면 선택 모달 -->
-    <div id="quadrant-modal" class="quadrant-modal">
-        <div class="quadrant-modal-content">
+    <div id="quadrant-modal" class="modal-overlay quadrant-modal">
+        <div class="modal-content quadrant-modal-content">
             <h3>어느 사분면에 추가하시겠습니까?</h3>
-            <p id="selected-work-name" style="margin: 10px 0; font-weight: 600; color: #2d3748;"></p>
-            
+            <p id="selected-work-name" style="margin: 12px 0; font-weight: 600; color: #1e293b;"></p>
             <div class="quadrant-options">
                 <div class="quadrant-option q1" onclick="addToMatrix(1)">
                     <div style="font-size: 2rem; margin-bottom: 10px;">🚨</div>
                     <div style="font-weight: 600; margin-bottom: 5px;">DO (즉시 실행)</div>
-                    <div style="font-size: 0.9rem; color: #718096;">중요하고 긴급한 일</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">중요하고 긴급한 일</div>
                 </div>
-                
                 <div class="quadrant-option q2" onclick="addToMatrix(2)">
                     <div style="font-size: 2rem; margin-bottom: 10px;">📋</div>
                     <div style="font-weight: 600; margin-bottom: 5px;">PLAN (계획 수립)</div>
-                    <div style="font-size: 0.9rem; color: #718096;">중요하지만 긴급하지 않은 일</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">중요하지만 긴급하지 않은 일</div>
                 </div>
-                
                 <div class="quadrant-option q3" onclick="addToMatrix(3)">
                     <div style="font-size: 2rem; margin-bottom: 10px;">🤝</div>
                     <div style="font-weight: 600; margin-bottom: 5px;">DELEGATE (위임)</div>
-                    <div style="font-size: 0.9rem; color: #718096;">긴급하지만 중요하지 않은 일</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">긴급하지만 중요하지 않은 일</div>
                 </div>
-                
                 <div class="quadrant-option q4" onclick="addToMatrix(4)">
                     <div style="font-size: 2rem; margin-bottom: 10px;">🗑️</div>
                     <div style="font-weight: 600; margin-bottom: 5px;">DELETE (제거)</div>
-                    <div style="font-size: 0.9rem; color: #718096;">중요하지도 긴급하지도 않은 일</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">중요하지도 긴급하지도 않은 일</div>
                 </div>
             </div>
-            
             <div style="text-align: center; margin-top: 20px;">
                 <button class="btn-cancel" onclick="hideQuadrantModal()">취소</button>
             </div>
         </div>
     </div>
 
-    <!-- 캐릭터 및 상태 메시지 -->
-    <div class="cute-character" onclick="showTip()">🎯</div>
+    <!-- 상태 메시지 -->
+    <div class="cute-character" onclick="showTip()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#F97316" stroke-width="1.5"/><circle cx="10" cy="10" r="3" fill="#F97316"/></svg>
+    </div>
     <div id="status-message" class="status-message"></div>
 
-    <!-- JavaScript 파일들 -->
     <script type="module" src="app.js"></script>
 </body>
 </html>

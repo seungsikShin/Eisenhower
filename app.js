@@ -2353,14 +2353,15 @@ function initCategoryChart() {
             datasets: [{
                 data: [0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#5b9df9',  // 파스텔 블루
-                    '#6ee7b7',  // 파스텔 그린
-                    '#fbbf24',  // 파스텔 오렌지
-                    '#fda4af',  // 파스텔 핑크
-                    '#a78bfa'   // 파스텔 퍼플
+                    '#111827',
+                    '#F97316',
+                    '#3B82F6',
+                    '#10B981',
+                    '#8B5CF6'
                 ],
-                borderWidth: 2,
-                borderColor: '#fff'
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 6
             }]
         },
         options: {
@@ -2404,15 +2405,16 @@ function initStatusChart() {
                 label: '업무 수',
                 data: [0, 0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#5b9df9',  // 파스텔 블루
-                    '#fbbf24',  // 파스텔 오렌지
-                    '#a78bfa',  // 파스텔 퍼플
-                    '#6ee7b7',  // 파스텔 그린
-                    '#fda4af',  // 파스텔 핑크
-                    '#67e8f9'   // 파스텔 시안
+                    '#E5E7EB',
+                    '#DBEAFE',
+                    '#EDE9FE',
+                    '#FEE2E2',
+                    '#D1FAE5',
+                    '#111827'
                 ],
-                borderRadius: 6,
+                borderRadius: 8,
                 borderSkipped: false,
+                borderWidth: 0,
             }]
         },
         options: {
@@ -2476,11 +2478,11 @@ function initMonthlyChart() {
             datasets: [{
                 label: '등록된 업무',
                 data: [0, 0, 0, 0, 0, 0],
-                borderColor: '#5b9df9',
-                backgroundColor: 'rgba(91,157,249,0.12)',
+                borderColor: '#F97316',
+                backgroundColor: 'rgba(249,115,22,0.08)',
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#5b9df9',
+                pointBackgroundColor: '#F97316',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 5,
